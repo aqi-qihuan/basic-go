@@ -4,9 +4,10 @@ import (
 	"gitee.com/geekbang/basic-go/lanmengbook/internal/domain"
 	"gitee.com/geekbang/basic-go/lanmengbook/internal/service"
 	regexp "github.com/dlclark/regexp2"
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	jwt "github.com/golang-jwt/jwt/v5"
 	"net/http"
+	"time"
 )
 
 const (
@@ -42,7 +43,9 @@ func (h *UserHandler) RegisterRoutes(server *gin.Engine) {
 	// POST /users/signup
 	ug.POST("/signup", h.SignUp)
 	// POST /users/login
-	ug.POST("/login", h.Login)
+	//ug.POST("/login", h.Login)
+	// POST /users/loginJWT 登录验证
+	ug.POST("/login", h.LoginJWT)
 	// POST /users/edit
 	ug.POST("/edit", h.Edit)
 	// GET /users/profile
@@ -101,6 +104,11 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 	}
 }
 
+// LoginJWT 函数，用于用户登录
+func (h *UserHandler) LoginJWT(context *gin.Context) {
+
+}
+
 // Login 函数，用于用户登录
 func (h *UserHandler) Login(ctx *gin.Context) {
 	type Req struct {
@@ -114,17 +122,19 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 	u, err := h.svc.Login(ctx, req.Email, req.Password)
 	switch err {
 	case nil:
-		sess := sessions.Default(ctx)
-		sess.Set("userId", u.Id)
-		sess.Options(sessions.Options{
-			// 十五分钟
-			MaxAge: 900,
-		})
-		err = sess.Save()
+		uc := UserClaims{
+			Uid: u.Id,
+			RegisteredClaims: jwt.RegisteredClaims{
+				//30分钟过期
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 1)),
+			},
+		}
+		token := jwt.NewWithClaims(jwt.SigningMethodES512, uc)
+		tokenStr, err := token.SignedString(JWTKey)
 		if err != nil {
 			ctx.String(http.StatusOK, "系统错误")
-			return
 		}
+		ctx.Header("x-jwt-token", tokenStr)
 		ctx.String(http.StatusOK, "登录成功")
 	case service.ErrInvalidUserOrPassword:
 		ctx.String(http.StatusOK, "用户名或者密码不对")
@@ -140,5 +150,14 @@ func (h *UserHandler) Edit(ctx *gin.Context) {
 
 // Profile 函数，用于获取用户信息
 func (h *UserHandler) Profile(ctx *gin.Context) {
+	//us := ctx.MustGet("user").(UserClaims)
 	ctx.String(http.StatusOK, "这是 profile")
+
+}
+
+var JWTKey = []byte("k6CswdUm77WKcbM68UQUuxVsHSpTCwgK")
+
+type UserClaims struct {
+	jwt.RegisteredClaims
+	Uid int64
 }

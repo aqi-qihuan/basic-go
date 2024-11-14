@@ -7,7 +7,7 @@ import (
 )
 
 // 测试密码加密
-func TestPasswordEncrypt(t *testing.T) {
+func TestUserRegister(t *testing.T) {
 	// 定义密码
 	password := []byte("123456#hello")
 	// 使用bcrypt库对密码进行加密

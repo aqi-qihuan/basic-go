@@ -72,7 +72,9 @@ func initWebServer() *gin.Engine {
 		//AllowOrigins:     []string{"http://localhost:3000"},
 		AllowCredentials: true,
 
-		AllowHeaders: []string{"Content-Type"},
+		AllowHeaders: []string{"Content-Type", "Authorization"},
+		// 这个是允许前端访问你的后端响应中带的头部
+		ExposeHeaders: []string{"x-jwt-token"},
 		//AllowHeaders: []string{"content-type"},
 		//AllowMethods: []string{"POST"},
 		AllowOriginFunc: func(origin string) bool {
@@ -86,12 +88,30 @@ func initWebServer() *gin.Engine {
 	}), func(ctx *gin.Context) {
 		println("这是我的 Middleware")
 	})
+	useJWT(server)
+	//useSession(server)
+	return server
+}
 
-	// 登录中间件
+func useJWT(server *gin.Engine) {
+	login := middleware.LoginJWTMiddlewareBuilder{}
+	server.Use(login.CheckLogin())
+}
+
+func useSession(server *gin.Engine) {
 	login := &middleware.LoginMiddlewareBuilder{}
 	// 存储数据的，也就是你 userId 存哪里
 	// 直接存 cookie
 	store := cookie.NewStore([]byte("secret"))
+	// 基于内存的实现
+	//store := memstore.NewStore([]byte("k6CswdUm75WKcbM68UQUuxVsHSpTCwgK"),
+	//	[]byte("eF1`yQ9>yT1`tH1,sJ0.zD8;mZ9~nC6("))
+	//store, err := redis.NewStore(16, "tcp",
+	//	"localhost:6379", "",
+	//	[]byte("k6CswdUm75WKcbM68UQUuxVsHSpTCwgK"),
+	//	[]byte("k6CswdUm75WKcbM68UQUuxVsHSpTCwgA"))
+	//if err != nil {
+	//	panic(err)
+	//}
 	server.Use(sessions.Sessions("ssid", store), login.CheckLogin())
-	return server
 }
