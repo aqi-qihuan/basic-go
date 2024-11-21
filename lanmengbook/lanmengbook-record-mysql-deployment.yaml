@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lanmengbook-record-mysql
+  labels:
+    app: lanmengbook-record-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lanmengbook-record-mysql
+  template:
+    metadata:
+      name: lanmengbook-record-mysql
+      labels:
+        app: lanmengbook-record-mysql
+    spec:
+      containers:
+        - name: lanmengbook-record-mysql
+          image: mysql:8.0.29
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: root
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: mysql-storage
+      restartPolicy: Always
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            #            PVC persistent volume claim
+            claimName: lanmengbook-mysql-pvc
+  
