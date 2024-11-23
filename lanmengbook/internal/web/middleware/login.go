@@ -46,7 +46,7 @@ func (m *LoginMiddlewareBuilder) CheckLogin() gin.HandlerFunc {
 		//试着拿出上一次的刷新时间
 		val := sess.Get(updateTimeKey)
 		lastUpdateTime, ok := val.(time.Time)
-		if val == nil || (!ok) || now.Sub(lastUpdateTime) > time.Second*10 {
+		if val == nil || !ok || now.Sub(lastUpdateTime) > time.Second*10 {
 			//你这是第一次进来
 			sess.Set(updateTimeKey, now)
 			sess.Set("userId", userId)
