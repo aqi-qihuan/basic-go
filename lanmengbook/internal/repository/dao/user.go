@@ -10,18 +10,22 @@ import (
 
 // 定义错误常量
 var (
+	// ErrDuplicateEmail 表示邮箱冲突错误
 	ErrDuplicateEmail = errors.New("邮箱冲突")
+	// ErrRecordNotFound 表示记录未找到错误
 	ErrRecordNotFound = gorm.ErrRecordNotFound
 )
 
 // 定义UserDAO结构体
 type UserDAO struct {
+	// db 是数据库连接对象
 	db *gorm.DB
 }
 
 // 创建UserDAO实例
 func NewUserDAO(db *gorm.DB) *UserDAO {
 	return &UserDAO{
+		// 初始化数据库连接对象
 		db: db,
 	}
 }
@@ -33,7 +37,7 @@ func (dao *UserDAO) Insert(ctx context.Context, u User) error {
 	// 设置创建时间和更新时间
 	u.Ctime = now
 	u.Utime = now
-	// 插入用户信息
+	// 插入用户信息到数据库
 	err := dao.db.WithContext(ctx).Create(&u).Error
 	// 判断是否为邮箱冲突错误
 	if me, ok := err.(*mysql.MySQLError); ok {
@@ -56,8 +60,11 @@ func (dao *UserDAO) FindByEmail(ctx context.Context, email string) (User, error)
 
 // 定义User结构体
 type User struct {
-	Id       int64  `gorm:"primaryKey,autoIncrement"`
-	Email    string `gorm:"unique"`
+	// Id 是用户ID，主键，自增
+	Id int64 `gorm:"primaryKey,autoIncrement"`
+	// Email 是用户邮箱，唯一
+	Email string `gorm:"unique"`
+	// Password 是用户密码
 	Password string
 
 	// 时区，UTC 0 的毫秒数

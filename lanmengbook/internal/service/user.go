@@ -10,12 +10,15 @@ import (
 
 // 定义错误常量
 var (
-	ErrDuplicateEmail        = repository.ErrDuplicateEmail
+	// ErrDuplicateEmail 表示邮箱已存在
+	ErrDuplicateEmail = repository.ErrDuplicateEmail
+	// ErrInvalidUserOrPassword 表示用户不存在或者密码不对
 	ErrInvalidUserOrPassword = errors.New("用户不存在或者密码不对")
 )
 
 // 定义UserService结构体
 type UserService struct {
+	// repo 是用户仓库的实例
 	repo *repository.UserRepository
 }
 
