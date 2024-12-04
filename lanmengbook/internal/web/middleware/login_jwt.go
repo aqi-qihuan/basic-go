@@ -14,14 +14,17 @@ type LoginJWTMiddlewareBuilder struct {
 }
 
 func (m *LoginJWTMiddlewareBuilder) CheckLogin() gin.HandlerFunc {
-
 	return func(ctx *gin.Context) {
 		path := ctx.Request.URL.Path
-		if path == "/users/signup" || path == "/users/login" {
+		// 不需要登录校验的路径
+		if path == "/users/signup" ||
+			path == "/users/login" ||
+			path == "/users/login_sms/code/send" ||
+			path == "/users/login_sms" {
+			// 不需要登录校验
 			return
 		}
-		//根据约定，token在 Authorization头部
-		//
+		// 根据约定，token 在 Authorization 头部
 		authCode := ctx.GetHeader("Authorization")
 		if authCode == "" {
 			// 没登录，没有 token, Authorization 这个头部都没有
@@ -36,6 +39,7 @@ func (m *LoginJWTMiddlewareBuilder) CheckLogin() gin.HandlerFunc {
 		}
 		tokenStr := segs[1]
 		var uc web.UserClaims
+		// 解析 token
 		token, err := jwt.ParseWithClaims(tokenStr, &uc, func(token *jwt.Token) (interface{}, error) {
 			return web.JWTKey, nil
 		})
@@ -50,12 +54,13 @@ func (m *LoginJWTMiddlewareBuilder) CheckLogin() gin.HandlerFunc {
 			return
 		}
 
-		if uc.UserAgent != ctx.GetHeader("User-Agent") {
-			// 后期我们讲到了监控告警的时候，这个地方要埋点
-			// 能够进来这个分支的，大概率是攻击者
-			ctx.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
+		//if uc.UserAgent!= ctx.GetHeader("User-Agent") {
+		//	// 后期我们讲到了监控告警的时候，这个地方要埋点
+		//	// 能够进来这个分支的，大概率是攻击者
+		//	ctx.AbortWithStatus(http.StatusUnauthorized)
+		//	return
+		//}
+
 		expireTime := uc.ExpiresAt
 		// 不判定都可以
 		//if expireTime.Before(time.Now()) {
