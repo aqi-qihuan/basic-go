@@ -1,8 +1,8 @@
 package ioc
 
 import (
-	"gitee.com/geekbang/basic-go/lanmengbook/config"
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/repository/dao"
+	"basic-go/lanmengbook/config"
+	"basic-go/lanmengbook/internal/repository/dao"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )

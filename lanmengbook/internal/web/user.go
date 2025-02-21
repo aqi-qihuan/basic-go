@@ -1,8 +1,8 @@
 package web
 
 import (
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/domain"
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/service"
+	"basic-go/lanmengbook/internal/domain"
+	"basic-go/lanmengbook/internal/service"
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"

@@ -1,11 +1,11 @@
 package repository
 
 import (
+	"basic-go/lanmengbook/internal/domain"
+	"basic-go/lanmengbook/internal/repository/cache"
+	"basic-go/lanmengbook/internal/repository/dao"
 	"context"
 	"database/sql"
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/domain"
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/repository/cache"
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/repository/dao"
 	"log"
 	"time"
 )

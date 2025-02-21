@@ -1,4 +1,4 @@
-module gitee.com/geekbang/basic-go
+module basic-go
 
 go 1.20
 
@@ -12,9 +12,10 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/google/wire v0.5.0
 	github.com/redis/go-redis/v9 v9.2.1
-	github.com/stretchr/testify v1.8.3
+	github.com/stretchr/testify v1.9.0
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.708
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms v1.0.708
+	go.uber.org/mock v0.5.0
 	golang.org/x/crypto v0.9.0
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/driver/sqlite v1.5.3

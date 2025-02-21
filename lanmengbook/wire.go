@@ -1,12 +1,12 @@
 package main
 
 import (
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/repository"
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/repository/cache"
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/repository/dao"
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/service"
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/web"
-	"gitee.com/geekbang/basic-go/lanmengbook/ioc"
+	"basic-go/lanmengbook/internal/repository"
+	"basic-go/lanmengbook/internal/repository/cache"
+	"basic-go/lanmengbook/internal/repository/dao"
+	"basic-go/lanmengbook/internal/service"
+	"basic-go/lanmengbook/internal/web"
+	"basic-go/lanmengbook/ioc"
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 )

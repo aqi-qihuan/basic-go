@@ -1,10 +1,10 @@
 package service
 
 import (
+	"basic-go/lanmengbook/internal/domain"
+	"basic-go/lanmengbook/internal/repository"
 	"context"
 	"errors"
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/domain"
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/repository"
 	"golang.org/x/crypto/bcrypt"
 )
 

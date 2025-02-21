@@ -1,7 +1,7 @@
 package ioc
 
 import (
-	"gitee.com/geekbang/basic-go/lanmengbook/config"
+	"basic-go/lanmengbook/config"
 	"github.com/redis/go-redis/v9"
 )
 

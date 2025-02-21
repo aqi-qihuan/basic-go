@@ -1,8 +1,8 @@
 package repository
 
 import (
+	"basic-go/lanmengbook/internal/repository/cache"
 	"context"
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/repository/cache"
 )
 
 // ErrCodeVerifyTooMany 表示验证验证码过于频繁

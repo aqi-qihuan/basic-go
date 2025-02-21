@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/web"
+	"basic-go/lanmengbook/internal/web"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"log"

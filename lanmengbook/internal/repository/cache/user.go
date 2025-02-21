@@ -1,10 +1,10 @@
 package cache
 
 import (
+	"basic-go/lanmengbook/internal/domain"
 	"context"
 	"encoding/json"
 	"fmt"
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/domain"
 	"github.com/redis/go-redis/v9"
 	"time"
 )

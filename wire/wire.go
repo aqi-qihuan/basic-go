@@ -3,8 +3,8 @@
 package wire
 
 import (
-	"gitee.com/geekbang/basic-go/wire/repository"
-	"gitee.com/geekbang/basic-go/wire/repository/dao"
+	"basic-go/wire/repository"
+	"basic-go/wire/repository/dao"
 )
 
 func InitUserRepository() *repository.UserRepository {

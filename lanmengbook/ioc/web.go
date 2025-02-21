@@ -1,9 +1,9 @@
 package ioc
 
 import (
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/web"
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/web/middleware"
-	"gitee.com/geekbang/basic-go/lanmengbook/pkg/ginx/middleware/ratelimit"
+	"basic-go/lanmengbook/internal/web"
+	"basic-go/lanmengbook/internal/web/middleware"
+	"basic-go/lanmengbook/pkg/ginx/middleware/ratelimit"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"

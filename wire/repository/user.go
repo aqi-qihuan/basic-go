@@ -1,6 +1,6 @@
 package wire
 
-import "gitee.com/geekbang/basic-go/wire/repository/dao"
+import "basic-go/wire/repository/dao"
 
 type UserRepository struct {
 	dao *dao.UserDAO

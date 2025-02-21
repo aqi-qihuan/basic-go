@@ -1,9 +1,9 @@
 package ioc
 
 import (
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/service/sms"
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/service/sms/localsms"
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/service/sms/tencent"
+	"basic-go/lanmengbook/internal/service/sms"
+	"basic-go/lanmengbook/internal/service/sms/localsms"
+	"basic-go/lanmengbook/internal/service/sms/tencent"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
 	tencentSMS "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms/v20210111"

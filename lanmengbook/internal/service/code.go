@@ -1,10 +1,10 @@
 package service
 
 import (
+	"basic-go/lanmengbook/internal/repository"
+	"basic-go/lanmengbook/internal/service/sms"
 	"context"
 	"fmt"
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/repository"
-	"gitee.com/geekbang/basic-go/lanmengbook/internal/service/sms"
 	"math/rand"
 )
 
