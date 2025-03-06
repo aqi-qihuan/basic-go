@@ -1,6 +1,6 @@
 //go:build wireinject
 
-package main
+package startup
 
 import (
 	"basic-go/lanmengbook/internal/repository"
