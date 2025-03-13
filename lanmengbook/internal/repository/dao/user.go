@@ -110,6 +110,13 @@ type User struct {
 	// 代表这是一个可以为 NULL 的列
 	Phone sql.NullString `gorm:"unique"`
 
+	// 1 如果查询要求同时使用 openid 和 unionid，就要创建联合唯一索引
+	// 2 如果查询只用 openid，那么就在 openid 上创建唯一索引，或者 <openid, unionId> 联合索引
+	// 3 如果查询只用 unionid，那么就在 unionid 上创建唯一索引，或者 <unionid, openid> 联合索引
+
+	WechatOpenId  sql.NullString `gorm:"unique"`
+	WechatUnionId sql.NullString
+
 	// 时区，UTC 0 的毫秒数
 	// 创建时间
 	Ctime int64

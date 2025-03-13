@@ -23,13 +23,16 @@ import (
 //}
 
 // InitWebServer 初始化Web服务器，并注册中间件和用户处理程序的路由
-func InitWebServer(mdls []gin.HandlerFunc, userHdl *web.UserHandler) *gin.Engine {
+func InitWebServer(mdls []gin.HandlerFunc, userHdl *web.UserHandler,
+	oauth2WechatHdl *web.OAuth2WechatHandler) *gin.Engine {
 	// 创建一个默认的Gin引擎
 	server := gin.Default()
 	// 使用传入的中间件
 	server.Use(mdls...)
 	// 注册用户处理程序的路由
 	userHdl.RegisterRoutes(server)
+	// 注册微信OAuth2处理程序的路由
+	oauth2WechatHdl.RegisterRoutes(server)
 	// 返回配置好的Gin引擎
 	return server
 }
