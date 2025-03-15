@@ -29,6 +29,7 @@ type UserRepository interface {
 	FindByPhone(ctx context.Context, phone string) (domain.User, error)
 	// FindById 根据用户ID查找用户
 	FindById(ctx context.Context, uid int64) (domain.User, error)
+	FindByWechat(ctx context.Context, openId string) (domain.User, error)
 }
 
 // CachedUserRepository 是基于缓存的用户存储库实现
@@ -37,6 +38,22 @@ type CachedUserRepository struct {
 	dao dao.UserDAO
 	// cache 是用户缓存对象
 	cache cache.UserCache
+}
+
+func (repo *CachedUserRepository) FindByWechat(ctx context.Context, openId string) (domain.User, error) {
+	ue, err := repo.dao.FindByWechat(ctx, openId)
+	if err != nil {
+		return domain.User{}, err
+	}
+	return repo.toDomain(ue), nil
+}
+
+type DBConfig struct {
+	DSN string
+}
+type CacheConfig struct {
+	//Addr 是 Redis 服务器的地址
+	Addr string
 }
 
 // NewCachedUserRepository 函数创建一个新的 CachedUserRepository 实例
@@ -78,6 +95,11 @@ func (repo *CachedUserRepository) toDomain(u dao.User) domain.User {
 		AboutMe:  u.AboutMe,
 		Nickname: u.Nickname,
 		Birthday: time.UnixMilli(u.Birthday),
+		Ctime:    time.UnixMilli(u.Ctime),
+		WechatInfo: domain.WechatInfo{
+			OpenId:  u.WechatOpenId.String,
+			UnionId: u.WechatUnionId.String,
+		},
 	}
 }
 
@@ -95,6 +117,14 @@ func (repo *CachedUserRepository) toEntity(u domain.User) dao.User {
 		},
 		Password: u.Password,
 		Birthday: u.Birthday.UnixMilli(),
+		WechatUnionId: sql.NullString{
+			String: u.WechatInfo.UnionId,
+			Valid:  u.WechatInfo.UnionId != "",
+		},
+		WechatOpenId: sql.NullString{
+			String: u.WechatInfo.OpenId,
+			Valid:  u.WechatInfo.OpenId != "",
+		},
 		AboutMe:  u.AboutMe,
 		Nickname: u.Nickname,
 	}

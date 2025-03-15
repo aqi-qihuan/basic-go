@@ -28,12 +28,19 @@ type UserDAO interface {
 	FindById(ctx context.Context, uid int64) (User, error)
 	// FindByPhone 根据电话号码查找用户
 	FindByPhone(ctx context.Context, phone string) (User, error)
+	FindByWechat(ctx context.Context, openId string) (User, error)
 }
 
 // GORMUserDAO 是基于 GORM 的用户数据访问对象实现
 type GORMUserDAO struct {
 	// db 是 GORM 数据库对象
 	db *gorm.DB
+}
+
+func (dao *GORMUserDAO) FindByWechat(ctx context.Context, openId string) (User, error) {
+	var u User
+	err := dao.db.WithContext(ctx).Where("wechat_open_id=?", openId).First(&u).Error
+	return u, err
 }
 
 // NewUserDAO 创建一个新的 UserDAO 实例

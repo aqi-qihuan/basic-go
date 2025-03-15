@@ -7,12 +7,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 )
+
+func init() {
+	gin.SetMode(gin.ReleaseMode)
+}
 
 // TestUserHandler_SendSMSCode 测试发送短信验证码的功能
 func TestUserHandler_SendSMSCode(t *testing.T) {

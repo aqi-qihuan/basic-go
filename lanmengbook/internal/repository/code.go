@@ -7,6 +7,7 @@ import (
 
 // ErrCodeVerifyTooMany 表示验证验证码过于频繁
 var ErrCodeVerifyTooMany = cache.ErrCodeVerifyTooMany
+var ErrCodeSendTooMany = cache.ErrCodeSendTooMany
 
 // CodeRepository 是验证码存储库的接口
 type CodeRepository interface {

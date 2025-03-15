@@ -16,7 +16,7 @@ import (
 func InitWebServer() *gin.Engine {
 	wire.Build(
 		// 第三方依赖
-		ioc.InitRedis, ioc.InitDB,
+		InitRedis, ioc.InitDB,
 		// DAO 部分
 		dao.NewUserDAO,
 

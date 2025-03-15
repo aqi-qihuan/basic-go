@@ -18,7 +18,16 @@ type User struct {
 	// UTC 0 的时区
 	Ctime time.Time
 
+	WechatInfo WechatInfo
 	//Addr Address
+}
+
+// TodeayIsBirthday 判断今天是否是生日
+func (u User) TodayIsBirthday() bool {
+	now := time.Now()
+	return u.Birthday.Year() == now.Year() &&
+		u.Birthday.Month() == now.Month() &&
+		u.Birthday.Day() == now.Day()
 }
 
 //type Address struct {
