@@ -5,6 +5,7 @@ import (
 	"basic-go/lanmengbook/internal/repository"
 	"context"
 	"errors"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -30,20 +31,30 @@ type UserService interface {
 		uid int64) (domain.User, error)
 	// FindOrCreate 方法用于查找或创建用户
 	FindOrCreate(ctx context.Context, phone string) (domain.User, error)
+	// FindOrCreateByWechat 是一个方法，用于根据微信信息查找或创建用户。
+	// ctx 参数是上下文对象，用于控制请求的截止时间、取消信号和其他请求范围的值。
+	// info 参数是 domain.WechatInfo 类型的对象，包含了微信用户的信息。
+	// 返回值是一个 domain.User 对象，表示找到或创建的用户，以及一个 error 对象，表示操作过程中可能发生的错误。
+	FindOrCreateByWechat(ctx context.Context, info domain.WechatInfo) (domain.User, error)
 }
 
-// 定义UserService结构体
+// 定义一个userService结构体，用于处理用户相关的业务逻辑
 type userService struct {
-	// repo 是用户仓库的实例
+	// repo字段用于存储用户数据访问层的接口实例
 	repo repository.UserRepository
+	// logger字段用于记录日志，目前被注释掉了
+	//logger *zap.Logger
 }
 
-// NewUserService 函数创建一个新的 UserService 实例
+// NewUserService函数用于创建一个新的userService实例
+// 参数repo是用户数据访问层的接口实例
+// 返回值是UserService接口的实现，即userService结构体的指针
 func NewUserService(repo repository.UserRepository) UserService {
-	// 返回一个 userService 结构体实例，该实例实现了 UserService 接口
+	// 返回一个新的userService实例，并将传入的repo赋值给userService的repo字段
+	// logger字段目前被注释掉了，没有赋值
 	return &userService{
-		// 初始化 userService 实例的 repo 字段，该字段是一个 UserRepository 接口的实现
 		repo: repo,
+		//logger: zap.L(),
 	}
 }
 
@@ -106,17 +117,34 @@ func (svc *userService) FindOrCreate(ctx context.Context, phone string) (domain.
 		// err!= nil，系统错误，
 		return u, err
 	}
+	// 用户没找到
 	err = svc.repo.Create(ctx, domain.User{
 		Phone: phone,
 	})
 	// 有两种可能，一种是 err 恰好是唯一索引冲突（phone）
 	// 一种是 err!= nil，系统错误
-	if err != nil && !errors.Is(err, repository.ErrDuplicateUser) {
+	if err != nil && err != repository.ErrDuplicateUser {
 		return domain.User{}, err
-
 	}
 	// 要么 err ==nil，要么ErrDuplicateUser，也代表用户存在
 	// 主从延迟，理论上来讲，强制走主库
 	return svc.repo.FindByPhone(ctx, phone)
 
+}
+func (svc *userService) FindOrCreateByWechat(ctx context.Context, wechatInfo domain.WechatInfo) (domain.User, error) {
+	u, err := svc.repo.FindByWechat(ctx, wechatInfo.OpenId)
+	if err != repository.ErrUserNotFound {
+		return u, err
+	}
+	// 这边就是意味着是一个新用户
+	// JSON 格式的 wechatInfo
+	zap.L().Info("新用户", zap.Any("wechatInfo", wechatInfo))
+	//svc.logger.Info("新用户", zap.Any("wechatInfo", wechatInfo))
+	err = svc.repo.Create(ctx, domain.User{
+		WechatInfo: wechatInfo,
+	})
+	if err != nil && err != repository.ErrDuplicateUser {
+		return domain.User{}, err
+	}
+	return svc.repo.FindByWechat(ctx, wechatInfo.OpenId)
 }

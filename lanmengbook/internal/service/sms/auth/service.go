@@ -40,7 +40,7 @@ func (s *SMSService) Send(ctx context.Context, tplToken string, args []string, n
 	// claims.TplID 是模板 ID
 	// args 是模板参数
 	// numbers 是接收短信的手机号码列表
-	return s.svc.Send(ctx, claims.TplID, args, numbers...)
+	return s.svc.Send(ctx, claims.Tpl, args, numbers...)
 
 }
 
@@ -49,6 +49,6 @@ type SMSClaims struct {
 	// RegisteredClaims 是 JWT 标准声明
 	jwt.RegisteredClaims
 	// TplID 是模板 ID
-	TplID string
+	Tpl string
 	// 额外加字段
 }

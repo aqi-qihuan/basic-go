@@ -3,10 +3,13 @@ package web
 import (
 	"basic-go/lanmengbook/internal/domain"
 	"basic-go/lanmengbook/internal/service"
+	ijwt "basic-go/lanmengbook/internal/web/jwt"
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	jwt "github.com/golang-jwt/jwt/v5"
+	"go.uber.org/zap"
+	"log"
 	"net/http"
 	"time"
 )
@@ -22,6 +25,9 @@ const (
 
 // UserHandler 结构体，用于处理用户相关的 HTTP 请求
 type UserHandler struct {
+	// ijwt.Handler 是一个接口类型，用于定义处理 JWT（JSON Web Token）相关操作的处理器。
+	// 该接口可以包含多个方法，用于处理不同类型的 JWT 操作，例如生成、验证、解析等。
+	ijwt.Handler
 	// 用于验证邮箱格式的正则表达式
 	emailRexExp *regexp.Regexp
 	// 用于验证密码格式的正则表达式
@@ -33,21 +39,26 @@ type UserHandler struct {
 }
 
 // NewUserHandler 函数，用于创建一个新的 UserHandler 实例
-func NewUserHandler(svc service.UserService, codeSvc service.CodeService) *UserHandler {
-	// 使用正则表达式编译邮箱正则表达式，用于验证邮箱格式
-	emailRexExp := regexp.MustCompile(emailRegexPattern, regexp.None)
-	// 使用正则表达式编译密码正则表达式，用于验证密码格式
-	passwordRexExp := regexp.MustCompile(passwordRegexPattern, regexp.None)
+func NewUserHandler(svc service.UserService, hdl ijwt.Handler, codeSvc service.CodeService) *UserHandler {
 	// 创建一个新的 UserHandler 实例
+	// svc: UserService 接口实例，用于处理用户相关的业务逻辑
+	// hdl: ijwt.Handler 接口实例，用于处理 JWT 相关的操作
+	// codeSvc: CodeService 接口实例，用于处理验证码相关的业务逻辑
 	return &UserHandler{
-		// 初始化 emailRexExp 字段，用于验证邮箱格式
-		emailRexExp: emailRexExp,
-		// 初始化 passwordRexExp 字段，用于验证密码格式
-		passwordRexExp: passwordRexExp,
-		// 初始化 svc 字段，用于处理用户相关的业务逻辑
+		// 使用正则表达式匹配电子邮件格式
+		// emailRegexPattern: 电子邮件正则表达式模式
+		// regexp.None: 正则表达式编译选项，表示不使用任何特殊选项
+		emailRexExp: regexp.MustCompile(emailRegexPattern, regexp.None),
+		// 使用正则表达式匹配密码格式
+		// passwordRegexPattern: 密码正则表达式模式
+		// regexp.None: 正则表达式编译选项，表示不使用任何特殊选项
+		passwordRexExp: regexp.MustCompile(passwordRegexPattern, regexp.None),
+		// 将传入的 UserService 实例赋值给 UserHandler 的 svc 字段
 		svc: svc,
-		// 初始化 codeSvc 字段，用于处理验证码相关的业务逻辑
+		// 将传入的 CodeService 实例赋值给 UserHandler 的 codeSvc 字段
 		codeSvc: codeSvc,
+		// 将传入的 ijwt.Handler 实例赋值给 UserHandler 的 Handler 字段
+		Handler: hdl,
 	}
 }
 
@@ -63,10 +74,12 @@ func (h *UserHandler) RegisterRoutes(server *gin.Engine) {
 	// POST /users/login
 	//ug.POST("/login", h.Login)
 	ug.POST("/login", h.LoginJWT)
+	ug.POST("/logout", h.LogoutJWT)
 	// POST /users/edit
 	ug.POST("/edit", h.Edit)
 	// GET /users/profile
 	ug.GET("/profile", h.Profile)
+	ug.GET("/refresh_token", h.RefreshToken)
 
 	// 手机验证码登录相关功能
 	ug.POST("/login_sms/code/send", h.SendSMSLoginCode)
@@ -95,6 +108,11 @@ func (h *UserHandler) LoginSMS(ctx *gin.Context) {
 			Code: 5,
 			Msg:  "系统异常",
 		})
+		zap.L().Error("验证码校验失败",
+			// 在生产环境绝对不能打
+			// 开发环境你可以随便打
+			//zap.String("phone", req.Phone),
+			zap.Error(err))
 		return
 	}
 	// 如果验证码验证失败，则返回错误信息
@@ -114,8 +132,11 @@ func (h *UserHandler) LoginSMS(ctx *gin.Context) {
 		})
 		return
 	}
-	// 调用 setJWTToken 方法，为用户设置 JWT 令牌
-	h.setJWTToken(ctx, u.Id)
+	err = h.SetLoginToken(ctx, u.Id)
+	if err != nil {
+		ctx.String(http.StatusOK, "系统错误")
+		return
+	}
 	// 返回 JSON 格式的成功信息，状态码为 200，表示请求成功，且业务逻辑处理成功
 	ctx.JSON(http.StatusOK, Result{
 		Msg: "登录成功",
@@ -153,6 +174,7 @@ func (h *UserHandler) SendSMSLoginCode(ctx *gin.Context) {
 		})
 	case service.ErrCodeSendTooMany:
 		// 如果发送太频繁，则返回 JSON 格式的错误信息，状态码为 200，表示请求成功，但业务逻辑处理失败
+		zap.L().Error("频繁发送验证码")
 		ctx.JSON(http.StatusOK, Result{
 			Code: 4,
 			Msg:  "短信发送太频繁，请稍后再试",
@@ -164,6 +186,7 @@ func (h *UserHandler) SendSMSLoginCode(ctx *gin.Context) {
 			Msg:  "系统错误",
 		})
 		// 补日志的
+		log.Println(err)
 	}
 }
 
@@ -249,8 +272,12 @@ func (h *UserHandler) LoginJWT(ctx *gin.Context) {
 	u, err := h.svc.Login(ctx, req.Email, req.Password)
 	switch err {
 	case nil:
-		// 如果登录成功，则调用 setJWTToken 方法，为用户设置 JWT 令牌
-		h.setJWTToken(ctx, u.Id)
+		// 如果登录成功，则调用 SetLoginToken 方法，为用户设置 JWT 令牌
+		h.SetLoginToken(ctx, u.Id)
+		if err != nil {
+			ctx.String(http.StatusOK, "系统错误")
+			return
+		}
 		// 返回字符串格式的成功信息，状态码为 200，表示请求成功，且业务逻辑处理成功
 		ctx.String(http.StatusOK, "登录成功")
 	case service.ErrInvalidUserOrPassword:
@@ -263,30 +290,30 @@ func (h *UserHandler) LoginJWT(ctx *gin.Context) {
 }
 
 // setJWTToken 方法，用于为用户设置 JWT 令牌
-func (h *UserHandler) setJWTToken(ctx *gin.Context, uid int64) {
-	// 创建一个 UserClaims 结构体实例，用于存储 JWT 声明
-	uc := UserClaims{
-		// 设置用户 ID
-		Uid: uid,
-		// 从请求头中获取 User-Agent 信息
-		UserAgent: ctx.GetHeader("User-Agent"),
-		// 设置注册声明
-		RegisteredClaims: jwt.RegisteredClaims{
-			// 设置过期时间为当前时间加 30 分钟
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 30)),
-		},
-	}
-	// 创建一个新的 JWT 对象，使用 HS512 签名方法和自定义声明
-	token := jwt.NewWithClaims(jwt.SigningMethodHS512, uc)
-	// 对 JWT 进行签名，生成 token 字符串
-	tokenStr, err := token.SignedString(JWTKey)
-	// 如果发生错误，返回系统错误信息
-	if err != nil {
-		ctx.String(http.StatusOK, "系统错误")
-	}
-	// 在响应头中设置 x-jwt-token 字段，值为生成的 token 字符串
-	ctx.Header("x-jwt-token", tokenStr)
-}
+//func (h *UserHandler) setJWTToken(ctx *gin.Context, uid int64) {
+//	// 创建一个 UserClaims 结构体实例，用于存储 JWT 声明
+//	uc := UserClaims{
+//		// 设置用户 ID
+//		Uid: uid,
+//		// 从请求头中获取 User-Agent 信息
+//		UserAgent: ctx.GetHeader("User-Agent"),
+//		// 设置注册声明
+//		RegisteredClaims: jwt.RegisteredClaims{
+//			// 设置过期时间为当前时间加 30 分钟
+//			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 30)),
+//		},
+//	}
+//	// 创建一个新的 JWT 对象，使用 HS512 签名方法和自定义声明
+//	token := jwt.NewWithClaims(jwt.SigningMethodHS512, uc)
+//	// 对 JWT 进行签名，生成 token 字符串
+//	tokenStr, err := token.SignedString(JWTKey)
+//	// 如果发生错误，返回系统错误信息
+//	if err != nil {
+//		ctx.String(http.StatusOK, "系统错误")
+//	}
+//	// 在响应头中设置 x-jwt-token 字段，值为生成的 token 字符串
+//	ctx.Header("x-jwt-token", tokenStr)
+//}
 
 // Login 方法，用于处理用户通过邮箱和密码登录的 HTTP 请求
 func (h *UserHandler) Login(ctx *gin.Context) {
@@ -349,7 +376,7 @@ func (h *UserHandler) Edit(ctx *gin.Context) {
 		return
 	}
 	// 从请求上下文中获取用户信息，如果获取失败则返回未授权状态码
-	uc, ok := ctx.MustGet("user").(UserClaims)
+	uc, ok := ctx.MustGet("user").(ijwt.UserClaims)
 	if !ok {
 		//ctx.String(http.StatusOK, "系统错误")
 		ctx.AbortWithStatus(http.StatusUnauthorized)
@@ -380,7 +407,7 @@ func (h *UserHandler) Edit(ctx *gin.Context) {
 // Profile 方法，用于处理用户查看个人资料的 HTTP 请求
 func (h *UserHandler) Profile(ctx *gin.Context) {
 	// 尝试从上下文中获取用户信息，如果获取失败则返回未授权状态码
-	uc, ok := ctx.MustGet("user").(UserClaims)
+	uc, ok := ctx.MustGet("user").(ijwt.UserClaims)
 	if !ok {
 		//ctx.String(http.StatusOK, "系统错误")
 		ctx.AbortWithStatus(http.StatusUnauthorized)
@@ -409,14 +436,61 @@ func (h *UserHandler) Profile(ctx *gin.Context) {
 }
 
 // JWTKey 是用于验证 JWT 的密钥
-var JWTKey = []byte("k6CswdUm77WKcbM68UQUuxVsHSpTCwgK")
+//var JWTKey = []byte("k6CswdUm77WKcbM68UQUuxVsHSpTCwgK")
+
+func (h *UserHandler) RefreshToken(ctx *gin.Context) {
+	//约定，前端在 Authorization 里面带上这个 refresh_token
+	tokenStr := h.ExtractToken(ctx)
+	var rc ijwt.RefreshClaims
+	token, err := jwt.ParseWithClaims(tokenStr, &rc, func(token *jwt.Token) (interface{}, error) {
+		return ijwt.RCJWTKey, nil
+	})
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	if token == nil || !token.Valid {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	err = h.CheckSession(ctx, rc.Ssid)
+	if err != nil {
+		// token 无效或者 redis 有问题
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	err = h.SetJWTToken(ctx, rc.Uid, rc.Ssid)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	ctx.JSON(http.StatusOK, Result{
+		Msg: "OK",
+	})
+}
 
 // UserClaims 结构体定义了 JWT 中包含的用户声明
-type UserClaims struct {
-	// 嵌入 jwt.RegisteredClaims 以包含标准的 JWT 声明
-	jwt.RegisteredClaims
-	// Uid 是用户的唯一标识符
-	Uid int64
-	// UserAgent 是用户的客户端信息
-	UserAgent string
+//type UserClaims struct {
+//	// 嵌入 jwt.RegisteredClaims 以包含标准的 JWT 声明
+//	jwt.RegisteredClaims
+//	// Uid 是用户的唯一标识符
+//	Uid int64
+//	// UserAgent 是用户的客户端信息
+//	UserAgent string
+//}
+
+// LogoutJWT 处理用户退出登录的请求，使用JWT进行身份验证
+func (h *UserHandler) LogoutJWT(ctx *gin.Context) {
+	// 调用ClearToken方法清除用户的Token
+	err := h.ClearToken(ctx)
+	// 如果清除Token过程中发生错误
+	if err != nil {
+		// 返回状态码200和错误信息，Code: 5表示系统异常
+		ctx.JSON(http.StatusOK, Result{Code: 5, Msg: "系统异常"})
+		return
+	}
+	// 如果清除Token成功，返回状态码200和成功信息
+	ctx.JSON(http.StatusOK, Result{Msg: "退出登录成功"})
 }
