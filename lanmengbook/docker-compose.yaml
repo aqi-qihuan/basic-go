@@ -25,8 +25,14 @@ services:
   etcd:
     image: "bitnami/etcd:latest"
     restart: always
-    entrypoint:
+    environment:
       - ALLOW_NON_AUTHENTICATION=yes
     ports:
       - "12379:2379"
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        /opt/bitnami/scripts/etcd/run.sh --advertise-client-urls=http://0.0.0.0:2379 --listen-client-urls=http://0.0.0.0:2379
+  
 

@@ -39,25 +39,29 @@ type UserHandler struct {
 }
 
 // NewUserHandler 函数，用于创建一个新的 UserHandler 实例
-func NewUserHandler(svc service.UserService, hdl ijwt.Handler, codeSvc service.CodeService) *UserHandler {
-	// 创建一个新的 UserHandler 实例
-	// svc: UserService 接口实例，用于处理用户相关的业务逻辑
-	// hdl: ijwt.Handler 接口实例，用于处理 JWT 相关的操作
-	// codeSvc: CodeService 接口实例，用于处理验证码相关的业务逻辑
+// NewUserHandler 创建一个新的用户处理器实例
+// 参数 svc 是用户服务接口的实现，用于处理用户相关的业务逻辑
+// 参数 hdl 是 JWT 处理器接口的实现，用于处理 JWT 相关的操作
+// 参数 codeSvc 是验证码服务接口的实现，用于处理验证码相关的业务逻辑
+// 返回一个新的 UserHandler 实例
+func NewUserHandler(svc service.UserService,
+	hdl ijwt.Handler,
+	codeSvc service.CodeService) *UserHandler {
+	// 返回一个新的 UserHandler 实例，并初始化其字段
 	return &UserHandler{
-		// 使用正则表达式匹配电子邮件格式
-		// emailRegexPattern: 电子邮件正则表达式模式
-		// regexp.None: 正则表达式编译选项，表示不使用任何特殊选项
+		// 使用正则表达式编译器编译电子邮件正则表达式模式
+		// emailRegexPattern 是一个字符串，包含了电子邮件的正则表达式模式
+		// regexp.None 表示不使用任何特殊的匹配选项
 		emailRexExp: regexp.MustCompile(emailRegexPattern, regexp.None),
-		// 使用正则表达式匹配密码格式
-		// passwordRegexPattern: 密码正则表达式模式
-		// regexp.None: 正则表达式编译选项，表示不使用任何特殊选项
+		// 使用正则表达式编译器编译密码正则表达式模式
+		// passwordRegexPattern 是一个字符串，包含了密码的正则表达式模式
+		// regexp.None 表示不使用任何特殊的匹配选项
 		passwordRexExp: regexp.MustCompile(passwordRegexPattern, regexp.None),
-		// 将传入的 UserService 实例赋值给 UserHandler 的 svc 字段
+		// 将传入的用户服务接口实现赋值给 UserHandler 的 svc 字段
 		svc: svc,
-		// 将传入的 CodeService 实例赋值给 UserHandler 的 codeSvc 字段
+		// 将传入的验证码服务接口实现赋值给 UserHandler 的 codeSvc 字段
 		codeSvc: codeSvc,
-		// 将传入的 ijwt.Handler 实例赋值给 UserHandler 的 Handler 字段
+		// 将传入的 JWT 处理器接口实现赋值给 UserHandler 的 Handler 字段
 		Handler: hdl,
 	}
 }

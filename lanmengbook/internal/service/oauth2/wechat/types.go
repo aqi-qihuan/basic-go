@@ -32,7 +32,7 @@ func NewService(appID string, appSecret string, l logger.LoggerV1) Service {
 	return &service{
 		appID:     appID,
 		appSecret: appSecret,
-		client:    http.DefaultClient, // 使用默认的HTTP客户端
+		client:    http.DefaultClient,
 	}
 }
 
