@@ -5,6 +5,7 @@ package wire
 import (
 	"basic-go/wire/repository"
 	"basic-go/wire/repository/dao"
+	"github.com/google/wire"
 )
 
 func InitUserRepository() *repository.UserRepository {
