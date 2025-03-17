@@ -259,36 +259,37 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 	}
 }
 
-// LoginJWT 方法，用于处理用户通过邮箱和密码登录并获取 JWT 令牌的 HTTP 请求
+// LoginJWT 处理用户JWT登录请求
 func (h *UserHandler) LoginJWT(ctx *gin.Context) {
-	// 定义一个结构体 Req，包含两个字段：Email 和 Password，分别用于接收请求中的邮箱和密码
+	// 定义请求结构体，用于接收JSON格式的用户名和密码
 	type Req struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Email    string `json:"email"`    // 用户邮箱
+		Password string `json:"password"` // 用户密码
 	}
-	// 声明一个 Req 类型的变量 req，用于接收解析后的请求参数
 	var req Req
-	// 调用 ctx.Bind 方法，将请求参数绑定到 req 变量上，如果发生错误则直接返回
+	// 将请求体绑定到req结构体中，如果绑定失败则直接返回
 	if err := ctx.Bind(&req); err != nil {
 		return
 	}
-	// 调用 svc.Login 方法，根据邮箱和密码登录用户，如果发生错误则返回错误信息
+	// 调用服务层的Login方法进行用户验证
 	u, err := h.svc.Login(ctx, req.Email, req.Password)
+	// 根据不同的错误类型进行不同的处理
 	switch err {
 	case nil:
-		// 如果登录成功，则调用 SetLoginToken 方法，为用户设置 JWT 令牌
-		h.SetLoginToken(ctx, u.Id)
+		// 如果验证成功，设置登录Token
+		err = h.SetLoginToken(ctx, u.Id)
 		if err != nil {
+			// 如果设置Token失败，返回系统错误
 			ctx.String(http.StatusOK, "系统错误")
 			return
 		}
-		// 返回字符串格式的成功信息，状态码为 200，表示请求成功，且业务逻辑处理成功
+		// 返回登录成功信息
 		ctx.String(http.StatusOK, "登录成功")
 	case service.ErrInvalidUserOrPassword:
-		// 如果用户名或密码不正确，则返回字符串格式的错误信息，状态码为 200，表示请求成功，但业务逻辑处理失败
+		// 如果用户名或密码错误，返回错误信息
 		ctx.String(http.StatusOK, "用户名或者密码不对")
 	default:
-		// 如果发生其他错误，则返回字符串格式的错误信息，状态码为 200，表示请求成功，但业务逻辑处理失败
+		// 其他错误情况，返回系统错误
 		ctx.String(http.StatusOK, "系统错误")
 	}
 }
