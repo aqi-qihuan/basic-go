@@ -10,30 +10,20 @@ import (
 )
 
 var (
-	// ErrDuplicateEmail 表示邮箱冲突错误
 	ErrDuplicateEmail = errors.New("邮箱冲突")
-	// ErrRecordNotFound 表示记录未找到错误
 	ErrRecordNotFound = gorm.ErrRecordNotFound
 )
 
-// UserDAO 是用户数据访问对象的接口
 type UserDAO interface {
-	// Insert 插入一个新用户
 	Insert(ctx context.Context, u User) error
-	// FindByEmail 根据邮箱查找用户
 	FindByEmail(ctx context.Context, email string) (User, error)
-	// UpdateById 根据用户ID更新用户信息
 	UpdateById(ctx context.Context, entity User) error
-	// FindById 根据用户ID查找用户
 	FindById(ctx context.Context, uid int64) (User, error)
-	// FindByPhone 根据电话号码查找用户
 	FindByPhone(ctx context.Context, phone string) (User, error)
 	FindByWechat(ctx context.Context, openId string) (User, error)
 }
 
-// GORMUserDAO 是基于 GORM 的用户数据访问对象实现
 type GORMUserDAO struct {
-	// db 是 GORM 数据库对象
 	db *gorm.DB
 }
 
@@ -43,14 +33,12 @@ func (dao *GORMUserDAO) FindByWechat(ctx context.Context, openId string) (User, 
 	return u, err
 }
 
-// NewUserDAO 创建一个新的 UserDAO 实例
 func NewUserDAO(db *gorm.DB) UserDAO {
 	return &GORMUserDAO{
 		db: db,
 	}
 }
 
-// Insert 插入一个新用户
 func (dao *GORMUserDAO) Insert(ctx context.Context, u User) error {
 	now := time.Now().UnixMilli()
 	u.Ctime = now
@@ -66,19 +54,18 @@ func (dao *GORMUserDAO) Insert(ctx context.Context, u User) error {
 	return err
 }
 
-// FindByEmail 根据邮箱查找用户
 func (dao *GORMUserDAO) FindByEmail(ctx context.Context, email string) (User, error) {
 	var u User
 	err := dao.db.WithContext(ctx).Where("email=?", email).First(&u).Error
 	return u, err
 }
 
-// UpdateById 根据用户ID更新用户信息
 func (dao *GORMUserDAO) UpdateById(ctx context.Context, entity User) error {
+
 	// 这种写法依赖于 GORM 的零值和主键更新特性
-	// Update 非零值 WHERE id =?
+	// Update 非零值 WHERE id = ?
 	//return dao.db.WithContext(ctx).Updates(&entity).Error
-	return dao.db.WithContext(ctx).Model(&entity).Where("id =?", entity.Id).
+	return dao.db.WithContext(ctx).Model(&entity).Where("id = ?", entity.Id).
 		Updates(map[string]any{
 			"utime":    time.Now().UnixMilli(),
 			"nickname": entity.Nickname,
@@ -87,21 +74,18 @@ func (dao *GORMUserDAO) UpdateById(ctx context.Context, entity User) error {
 		}).Error
 }
 
-// FindById 根据用户ID查找用户
 func (dao *GORMUserDAO) FindById(ctx context.Context, uid int64) (User, error) {
 	var res User
-	err := dao.db.WithContext(ctx).Where("id =?", uid).First(&res).Error
+	err := dao.db.WithContext(ctx).Where("id = ?", uid).First(&res).Error
 	return res, err
 }
 
-// FindByPhone 根据电话号码查找用户
 func (dao *GORMUserDAO) FindByPhone(ctx context.Context, phone string) (User, error) {
 	var res User
-	err := dao.db.WithContext(ctx).Where("phone =?", phone).First(&res).Error
+	err := dao.db.WithContext(ctx).Where("phone = ?", phone).First(&res).Error
 	return res, err
 }
 
-// User 是用户结构体
 type User struct {
 	Id int64 `gorm:"primaryKey,autoIncrement"`
 	// 代表这是一个可以为 NULL 的列
@@ -120,7 +104,6 @@ type User struct {
 	// 1 如果查询要求同时使用 openid 和 unionid，就要创建联合唯一索引
 	// 2 如果查询只用 openid，那么就在 openid 上创建唯一索引，或者 <openid, unionId> 联合索引
 	// 3 如果查询只用 unionid，那么就在 unionid 上创建唯一索引，或者 <unionid, openid> 联合索引
-
 	WechatOpenId  sql.NullString `gorm:"unique"`
 	WechatUnionId sql.NullString
 

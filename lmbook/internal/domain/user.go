@@ -2,7 +2,6 @@ package domain
 
 import "time"
 
-// 定义一个用户结构体
 type User struct {
 	Id       int64
 	Email    string
@@ -19,15 +18,14 @@ type User struct {
 	Ctime time.Time
 
 	WechatInfo WechatInfo
+
 	//Addr Address
 }
 
-// TodeayIsBirthday 判断今天是否是生日
+// TodayIsBirthday 判定今天是不是我的生日
 func (u User) TodayIsBirthday() bool {
 	now := time.Now()
-	return u.Birthday.Year() == now.Year() &&
-		u.Birthday.Month() == now.Month() &&
-		u.Birthday.Day() == now.Day()
+	return now.Month() == u.Birthday.Month() && now.Day() == u.Birthday.Day()
 }
 
 //type Address struct {

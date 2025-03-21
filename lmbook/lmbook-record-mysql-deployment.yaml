@@ -1,36 +1,77 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: lmbook-record-mysql
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"app":"lmbook-record-mysql"},"name":"lmbook-record-mysql","namespace":"default"},"spec":{"replicas":1,"selector":{"matchLabels":{"app":"lmbook-record-mysql"}},"template":{"metadata":{"labels":{"app":"lmbook-record-mysql"},"name":"lmbook-record-mysql"},"spec":{"containers":[{"env":[{"name":"MYSQL_ROOT_PASSWORD","value":"root"}],"image":"mysql:8.0.29","imagePullPolicy":"IfNotPresent","name":"lmbook-record-mysql","ports":[{"containerPort":3306}],"volumeMounts":[{"mountPath":"/var/lib/mysql","name":"mysql-storage"}]}],"restartPolicy":"Always","volumes":[{"name":"mysql-storage","persistentVolumeClaim":{"claimName":"lmbook-mysql-pvc"}}]}}}}
+  creationTimestamp: "2025-03-18T11:01:07Z"
+  generation: 1
   labels:
     app: lmbook-record-mysql
+  name: lmbook-record-mysql
+  namespace: default
+  resourceVersion: "251023"
+  uid: a4a212b0-ff67-4dd8-aa6a-453737c49ac4
 spec:
+  progressDeadlineSeconds: 600
   replicas: 1
+  revisionHistoryLimit: 10
   selector:
     matchLabels:
       app: lmbook-record-mysql
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
   template:
     metadata:
-      name: lmbook-record-mysql
+      creationTimestamp: null
       labels:
         app: lmbook-record-mysql
+      name: lmbook-record-mysql
     spec:
       containers:
-        - name: lmbook-record-mysql
-          image: mysql:8.0.29
-          env:
-            - name: MYSQL_ROOT_PASSWORD
-              value: root
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 3306
-          volumeMounts:
-            - mountPath: /var/lib/mysql
-              name: mysql-storage
+      - env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: root
+        image: mysql:8.0.32
+        imagePullPolicy: IfNotPresent
+        name: lmbook-record-mysql
+        ports:
+        - containerPort: 3306
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/mysql
+          name: mysql-storage
+      dnsPolicy: ClusterFirst
       restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
       volumes:
-        - name: mysql-storage
-          persistentVolumeClaim:
-            #            PVC persistent volume claim
-            claimName: lmbook-mysql-pvc
-  
+      - name: mysql-storage
+        persistentVolumeClaim:
+          claimName: lmbook-mysql-pvc
+status:
+  conditions:
+  - lastTransitionTime: "2025-03-18T11:01:07Z"
+    lastUpdateTime: "2025-03-18T11:02:10Z"
+    message: ReplicaSet "lmbook-record-mysql-74bd796fb" has successfully progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  - lastTransitionTime: "2025-03-18T11:02:55Z"
+    lastUpdateTime: "2025-03-18T11:02:55Z"
+    message: Deployment does not have minimum availability.
+    reason: MinimumReplicasUnavailable
+    status: "False"
+    type: Available
+  observedGeneration: 1
+  replicas: 1
+  unavailableReplicas: 1
+  updatedReplicas: 1

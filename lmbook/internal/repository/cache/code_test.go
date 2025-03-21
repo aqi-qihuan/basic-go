@@ -16,15 +16,13 @@ func TestRedisCodeCache_Set(t *testing.T) {
 		return fmt.Sprintf("phone_code:%s:%s", biz, phone)
 	}
 	testCases := []struct {
-		name string
-		mock func(ctrl *gomock.Controller) redis.Cmdable
-		//输入
+		name  string
+		mock  func(ctrl *gomock.Controller) redis.Cmdable
 		ctx   context.Context
 		biz   string
-		bizId string
 		phone string
 		code  string
-		// 预期输出输出
+
 		wantErr error
 	}{
 		{
@@ -63,7 +61,6 @@ func TestRedisCodeCache_Set(t *testing.T) {
 			code:    "123456",
 			wantErr: errors.New("redis错误"),
 		},
-
 		{
 			name: "验证码不存在过期时间",
 			mock: func(ctrl *gomock.Controller) redis.Cmdable {

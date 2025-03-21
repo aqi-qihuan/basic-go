@@ -1,4 +1,4 @@
-package wire
+package repository
 
 import "basic-go/wire/repository/dao"
 

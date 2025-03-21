@@ -186,9 +186,8 @@ func TestCachedUserRepository_FindById(t *testing.T) {
 			uc, ud := tc.mock(ctrl)
 			svc := NewCachedUserRepository(ud, uc)
 			user, err := svc.FindById(tc.ctx, tc.uid)
-			assert.Equal(t, tc.wantUser, err)
-			assert.Equal(t, tc.wantErr, user)
+			assert.Equal(t, tc.wantErr, err)
+			assert.Equal(t, tc.wantUser, user)
 		})
 	}
-
 }

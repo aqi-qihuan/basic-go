@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	initViper()
+	initViperV1()
 	initLogger()
 	server := InitWebServer()
 	server.GET("/hello", func(ctx *gin.Context) {
@@ -23,24 +23,24 @@ func main() {
 }
 
 func initLogger() {
-	logeer, err := zap.NewProduction()
+	logger, err := zap.NewDevelopment()
 	if err != nil {
 		panic(err)
 	}
-	zap.ReplaceGlobals(logeer)
+	zap.ReplaceGlobals(logger)
 }
 
 func initViper() {
 	viper.SetConfigName("dev")
 	viper.SetConfigType("yaml")
-
-	viper.AddConfigPath("./config")
-	// 读取配置文件
+	// 当前工作目录的 config 子目录
+	viper.AddConfigPath("config")
+	// 读取配置
 	err := viper.ReadInConfig()
 	if err != nil {
 		panic(err)
 	}
-	val := viper.Get("server")
+	val := viper.Get("test.key")
 	log.Println(val)
 }
 
@@ -71,6 +71,8 @@ func initViperV1() {
 		"config/config.yaml", "配置文件路径")
 	// 这一步之后，cfile 里面才有值
 	pflag.Parse()
+	//viper.Set("db.dsn", "localhost:3306")
+	// 所有的默认值放好s
 	viper.SetConfigType("yaml")
 	viper.SetConfigFile(*cfile)
 	// 读取配置
@@ -80,7 +82,6 @@ func initViperV1() {
 	}
 	val := viper.Get("test.key")
 	log.Println(val)
-
 }
 
 func initViperV2() {
@@ -103,7 +104,7 @@ db:
 
 func initViperRemote() {
 	err := viper.AddRemoteProvider("etcd3",
-		"http://127.0.0.1:12379", "/webook")
+		"http://127.0.0.1:12379", "/lmbook")
 	if err != nil {
 		panic(err)
 	}
@@ -113,12 +114,12 @@ func initViperRemote() {
 	})
 	go func() {
 		for {
-			err := viper.WatchRemoteConfig()
+			err = viper.WatchRemoteConfig()
 			if err != nil {
 				panic(err)
 			}
 			log.Println("watch", viper.GetString("test.key"))
-			//time.Sleep(time.Second * 3)
+			//time.Sleep(time.Second)
 		}
 	}()
 	err = viper.ReadRemoteConfig()
