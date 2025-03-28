@@ -132,7 +132,16 @@ func (repo *CachedUserRepository) toEntity(u domain.User) dao.User {
 
 func (repo *CachedUserRepository) UpdateNonZeroFields(ctx context.Context,
 	user domain.User) error {
-	return repo.dao.UpdateById(ctx, repo.toEntity(user))
+	// 更新 DB 之后，删除
+	err := repo.dao.UpdateById(ctx, repo.toEntity(user))
+	if err != nil {
+		return err
+	}
+	// 延迟一秒
+	time.AfterFunc(time.Second, func() {
+		_ = repo.cache.Del(ctx, user.Id)
+	})
+	return repo.cache.Del(ctx, user.Id)
 }
 
 func (repo *CachedUserRepository) FindById(ctx context.Context, uid int64) (domain.User, error) {
