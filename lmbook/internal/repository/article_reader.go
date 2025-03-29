@@ -6,5 +6,5 @@ import (
 )
 
 type ArticleReaderRepository interface {
-	Search(ctx context.Context, art domain.Article) error
+	Save(ctx context.Context, art domain.Article) error
 }

@@ -10,3 +10,5 @@ type Service interface {
 	//A()
 	//B()
 }
+type Req struct {
+}

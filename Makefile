@@ -2,6 +2,7 @@
 mock:
 	@mockgen -source=./lmbook/internal/service/user.go -package=svcmocks -destination=./lmbook/internal/service/mocks/user.mock.go
 	@mockgen -source=./lmbook/internal/service/code.go -package=svcmocks -destination=./lmbook/internal/service/mocks/code.mock.go
+	@mockgen -source=./lmbook/internal/service/article.go -package=svcmocks -destination=./lmbook/internal/service/mocks/article.mock.go
 	@mockgen -source=./lmbook/internal/service/sms/types.go -package=smsmocks -destination=./lmbook/internal/service/sms/mocks/sms.mock.go
 	@mockgen -source=./lmbook/internal/repository/code.go -package=repomocks -destination=./lmbook/internal/repository/mocks/code.mock.go
 	@mockgen -source=./lmbook/internal/repository/user.go -package=repomocks -destination=./lmbook/internal/repository/mocks/user.mock.go
