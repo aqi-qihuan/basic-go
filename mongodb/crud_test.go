@@ -15,19 +15,23 @@ import (
 
 func TestMongoDB(t *testing.T) {
 
+	// 创建一个带有超时的上下文
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	defer cancel() // 确保在函数结束时取消上下文，释放资源
 
+	// 创建一个命令监控器，用于监控MongoDB命令的执行
 	monitor := &event.CommandMonitor{
 		Started: func(_ context.Context, evt *event.CommandStartedEvent) {
-			fmt.Println(evt.Command)
+			fmt.Println(evt.Command) // 打印开始执行的命令
 		},
 	}
+	// 配置MongoDB客户端选项，包括连接URI和命令监控器
 	opts := options.Client().
 		ApplyURI("mongodb://root:example@localhost:27017").
 		SetMonitor(monitor)
+	// 连接到MongoDB
 	client, err := mongo.Connect(ctx, opts)
-	assert.NoError(t, err)
+	assert.NoError(t, err) // 断言连接没有错误
 	//操作 client
 	col := client.Database("lmbook").
 		Collection("articles")
