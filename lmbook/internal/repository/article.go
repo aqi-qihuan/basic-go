@@ -5,11 +5,13 @@ import (
 	"basic-go/lmbook/internal/repository/cache"
 	"basic-go/lmbook/internal/repository/dao"
 	"context"
+	"github.com/ecodeclub/
 	"github.com/ecodeclub/ekit/slice"
 	"gorm.io/gorm"
 	"time"
 )
 
+//go:generate mockgen -source=./article.go -package=repomocks -destination=./mocks/article.mock.go ArticleRepository
 type ArticleRepository interface {
 	Create(ctx context.Context, art domain.Article) (int64, error)
 	Update(ctx context.Context, art domain.Article) error

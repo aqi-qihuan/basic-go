@@ -14,14 +14,13 @@ func InitMongoDB() *mongo.Database {
 	defer cancel()
 
 	monitor := &event.CommandMonitor{
-		Started: func(ctx context.Context, event *event.CommandStartedEvent) {
-			fmt.Println(event.Command)
+		Started: func(ctx context.Context, evt *event.CommandStartedEvent) {
+			fmt.Println(evt.Command)
 		},
 	}
 	opts := options.Client().
 		ApplyURI("mongodb://root:example@localhost:27017/").
 		SetMonitor(monitor)
-
 	client, err := mongo.Connect(ctx, opts)
 	if err != nil {
 		panic(err)

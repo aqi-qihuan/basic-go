@@ -1,5 +1,5 @@
 package events
 
-type Connection interface {
+type Consumer interface {
 	Start() error
 }

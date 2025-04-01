@@ -15,16 +15,16 @@ import (
 	"time"
 )
 
-// 你可以用这个来单独测试你的 OSS 配置对不对，有没有权
+// 你可以用这个来单独测试你的 OSS 配置对不对，有没有权限
 func TestS3(t *testing.T) {
 	// 腾讯云中对标 s3 和 OSS 的产品叫做 COS
 	cosId, ok := os.LookupEnv("COS_APP_ID")
 	if !ok {
 		panic("没有找到环境变量 COS_APP_ID ")
 	}
-	cosKey, ok := os.LookupEnv("COS_SECRET_KEY")
+	cosKey, ok := os.LookupEnv("COS_APP_SECRET")
 	if !ok {
-		panic("没有找到环境变量 COS_SECRET_KEY ")
+		panic("没有找到环境变量 COS_APP_SECRET")
 	}
 	sess, err := session.NewSession(&aws.Config{
 		Credentials: credentials.NewStaticCredentials(cosId, cosKey, ""),

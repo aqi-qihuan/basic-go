@@ -19,6 +19,7 @@ func InitRedisV1() redis.Cmdable {
 	v.SetConfigFile("config/redis.conf")
 	addr := v.GetString("addr")
 	return redis.NewClient(&redis.Options{
+		//Addr: viper.GetString("redis.addr"),
 		Addr: addr,
 	})
 }

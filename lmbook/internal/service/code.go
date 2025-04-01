@@ -10,11 +10,13 @@ import (
 
 var ErrCodeSendTooMany = repository.ErrCodeSendTooMany
 
+//go:generate mockgen -source=./code.go -package=svcmocks -destination=./mocks/code.mock.go CodeService
 type CodeService interface {
 	Send(ctx context.Context, biz, phone string) error
 	Verify(ctx context.Context,
 		biz, phone, inputCode string) (bool, error)
 }
+
 type codeService struct {
 	repo repository.CodeRepository
 	sms  sms.Service

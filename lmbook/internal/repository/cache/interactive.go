@@ -3,6 +3,7 @@ package cache
 import (
 	"basic-go/lmbook/internal/domain"
 	"context"
+	_ "embed"
 	"fmt"
 	"github.com/redis/go-redis/v9"
 	"strconv"
@@ -10,6 +11,7 @@ import (
 )
 
 var (
+	//go:embed lua/incr_cnt.lua
 	luaIncrCnt string
 )
 

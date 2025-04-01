@@ -10,6 +10,7 @@ import (
 
 var ErrWaitingSMSNotFound = gorm.ErrRecordNotFound
 
+//go:generate mockgen -source=./async_sms.go -package=daomocks -destination=mocks/async_sms.mock.go AsyncSmsDAO
 type AsyncSmsDAO interface {
 	Insert(ctx context.Context, s AsyncSms) error
 	GetWaitingSMS(ctx context.Context) (AsyncSms, error)
@@ -83,6 +84,7 @@ func (g *GORMAsyncSmsDAO) MarkSuccess(ctx context.Context, id int64) error {
 func (g *GORMAsyncSmsDAO) MarkFailed(ctx context.Context, id int64) error {
 	now := time.Now().UnixMilli()
 	return g.db.WithContext(ctx).Model(&AsyncSms{}).
+		// 只有到达了重试次数才会更新
 		Where("id =? and `retry_cnt`>=`retry_max`", id).
 		Updates(map[string]any{
 			"utime":  now,

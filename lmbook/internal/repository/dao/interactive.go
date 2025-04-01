@@ -149,6 +149,7 @@ func (dao *GORMInteractiveDAO) BatchIncrReadCnt(ctx context.Context, bizs []stri
 		return nil
 	})
 }
+
 func (dao *GORMInteractiveDAO) IncrReadCnt(ctx context.Context, biz string, bizId int64) error {
 	now := time.Now().UnixMilli()
 	return dao.db.WithContext(ctx).Clauses(clause.OnConflict{

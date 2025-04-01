@@ -5,8 +5,7 @@ import (
 	"basic-go/lmbook/internal/events/article"
 	"basic-go/lmbook/internal/repository"
 	"basic-go/lmbook/pkg/logger"
-	"context"
-	"errors"
+	"
 )
 
 //go:generate mockgen -source=./article.go -package=svcmocks -destination=./mocks/article.mock.go ArticleService

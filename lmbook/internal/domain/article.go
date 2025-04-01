@@ -21,7 +21,7 @@ func (a Article) Abstract() string {
 	return string(str)
 }
 
-type ArticleStatus int8
+type ArticleStatus uint8
 
 func (s ArticleStatus) ToUint8() uint8 {
 	return uint8(s)

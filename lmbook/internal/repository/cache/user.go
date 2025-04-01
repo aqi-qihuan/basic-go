@@ -11,10 +11,11 @@ import (
 
 var ErrKeyNotExist = redis.Nil
 
+//go:generate mockgen -source=./user.go -package=cachemocks -destination=./mocks/user.mock.go UserCache
 type UserCache interface {
 	Get(ctx context.Context, uid int64) (domain.User, error)
 	Set(ctx context.Context, du domain.User) error
-	Del(ctx context.Context, uid int64) error
+	Del(ctx context.Context, id int64) error
 }
 
 type RedisUserCache struct {
@@ -25,10 +26,12 @@ type RedisUserCache struct {
 func (c *RedisUserCache) Del(ctx context.Context, id int64) error {
 	return c.cmd.Del(ctx, c.key(id)).Err()
 }
+
 func (c *RedisUserCache) Get(ctx context.Context, uid int64) (domain.User, error) {
 	key := c.key(uid)
 	// 我假定这个地方用 JSON 来
 	data, err := c.cmd.Get(ctx, key).Result()
+	//data, err := c.cmd.Get(ctx, firstKey).Bytes()
 	if err != nil {
 		return domain.User{}, err
 	}

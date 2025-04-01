@@ -266,17 +266,17 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 
 	uc := ctx.MustGet("user").(jwt.UserClaims)
 	eg.Go(func() error {
-		var err error
-		art, err = h.svc.GetPubById(ctx, id, uc.Uid)
-		return err
+		var er error
+		art, er = h.svc.GetPubById(ctx, id, uc.Uid)
+		return er
 	})
-
 	eg.Go(func() error {
 		var er error
 		intr, er = h.intrSvc.Get(ctx, h.biz, id, uc.Uid)
 		return er
 	})
-	//等待结果
+
+	// 等待结果
 	err = eg.Wait()
 	if err != nil {
 		ctx.JSON(http.StatusOK, Result{
@@ -284,23 +284,23 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 			Code: 5,
 		})
 		h.l.Error("查询文章失败，系统错误",
-			logger.Int64("id", id),
+			logger.Int64("aid", id),
 			logger.Int64("uid", uc.Uid),
 			logger.Error(err))
 		return
 	}
 
 	//go func() {
-	//	// 1. 如果你想摆脱原本主链路的超时控制，你就创建一个新的
-	//	// 2. 如果你不想，你就用 ctx
-	//	newCtx, cancel := context.WithTimeout(context.Background(), time.Second)
-	//	defer cancel()
-	//	er := h.intrSvc.IncrReadCnt(newCtx, h.biz, art.Id)
-	//	if er != nil {
-	//		h.l.Error("更新阅读数失败",
-	//			logger.Int64("aid", art.Id),
-	//			logger.Error(err))
-	//	}
+	// 1. 如果你想摆脱原本主链路的超时控制，你就创建一个新的
+	// 2. 如果你不想，你就用 ctx
+	//newCtx, cancel := context.WithTimeout(context.Background(), time.Second)
+	//defer cancel()
+	//er := h.intrSvc.IncrReadCnt(newCtx, h.biz, art.Id)
+	//if er != nil {
+	//	h.l.Error("更新阅读数失败",
+	//		logger.Int64("aid", art.Id),
+	//		logger.Error(err))
+	//}
 	//}()
 
 	ctx.JSON(http.StatusOK, Result{
@@ -327,7 +327,7 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 func (h *ArticleHandler) Like(c *gin.Context) {
 	type Req struct {
 		Id int64 `json:"id"`
-		// 1 是点赞，0 是取消点赞
+		// true 是点赞，false 是不点赞
 		Like bool `json:"like"`
 	}
 	var req Req
@@ -356,12 +356,11 @@ func (h *ArticleHandler) Like(c *gin.Context) {
 	c.JSON(http.StatusOK, Result{
 		Msg: "OK",
 	})
-
 }
+
 func (h *ArticleHandler) Collect(ctx *gin.Context) {
 	type Req struct {
-		Id int64 `json:"id"`
-		// 1 是收藏，0 是取消收藏
+		Id  int64 `json:"id"`
 		Cid int64 `json:"cid"`
 	}
 	var req Req

@@ -5,6 +5,7 @@ import (
 	"gorm.io/gorm"
 )
 
+//go:generate mockgen -source=./article_author.go -package=daomocks -destination=./mocks/article_author.mock.go ArticleAuthorDAO
 type ArticleAuthorDAO interface {
 	Create(ctx context.Context, art Article) (int64, error)
 	Update(ctx context.Context, art Article) error
@@ -25,12 +26,6 @@ func (a *ArticleGORMAuthorDAO) Update(ctx context.Context, art Article) error {
 }
 
 func NewArticleGORMAuthorDAO(db *gorm.DB) ArticleAuthorDAO {
-	return &ArticleGORMAuthorDAO{
-		db: db,
-	}
-}
-
-func NewArticleAuthorDAO(db *gorm.DB) ArticleAuthorDAO {
 	return &ArticleGORMAuthorDAO{
 		db: db,
 	}

@@ -1,7 +1,7 @@
 package samarax
 
 import (
-	"basic-go/lmbook/pkg/logger"
+	"basic-go
 	"context"
 	"encoding/json"
 	"github.com/IBM/sarama"

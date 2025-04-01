@@ -22,7 +22,7 @@ type LocalCodeCache struct {
 	cache *lru.Cache
 	// 普通锁，或者说写锁
 	lock sync.Mutex
-	//读写锁
+	// 读写锁
 	expiration time.Duration
 }
 
@@ -33,7 +33,7 @@ func NewLocalCodeCache(c *lru.Cache, expiration time.Duration) *LocalCodeCache {
 	}
 }
 
-func (l *LocalCodeCache) Set(ctx context.Context, biz, phone, code string) error {
+func (l *LocalCodeCache) Set(ctx context.Context, biz string, phone string, code string) error {
 
 	l.lock.Lock()
 	defer l.lock.Unlock()
@@ -46,7 +46,7 @@ func (l *LocalCodeCache) Set(ctx context.Context, biz, phone, code string) error
 	now := time.Now()
 	val, ok := l.cache.Get(key)
 	if !ok {
-		//说明没有验证码
+		// 说明没有验证码
 		l.cache.Add(key, codeItem{
 			code:   code,
 			cnt:    3,
@@ -56,14 +56,14 @@ func (l *LocalCodeCache) Set(ctx context.Context, biz, phone, code string) error
 	}
 	itm, ok := val.(codeItem)
 	if !ok {
-		//理论上来说这是不会走到的
+		// 理论上来说这是不可能的
 		return errors.New("系统错误")
 	}
 	if itm.expire.Sub(now) > time.Minute*9 {
-		//不到一分钟
+		// 不到一分钟
 		return ErrCodeSendTooMany
 	}
-	//重发
+	// 重发
 	l.cache.Add(key, codeItem{
 		code:   code,
 		cnt:    3,
@@ -72,35 +72,35 @@ func (l *LocalCodeCache) Set(ctx context.Context, biz, phone, code string) error
 	return nil
 }
 
-func (l *LocalCodeCache) Verify(ctx context.Context, biz, phone, code string) (bool, error) {
+func (l *LocalCodeCache) Verify(ctx context.Context, biz string, phone string, inputCode string) (bool, error) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 	key := l.key(biz, phone)
 	val, ok := l.cache.Get(key)
 	if !ok {
-		//都没发验证码
+		// 都没发验证码
 		return false, ErrKeyNotExist
 	}
 	itm, ok := val.(codeItem)
 	if !ok {
-		//理论上来说这是不会走到的
+		// 理论上来说这是不可能的
 		return false, errors.New("系统错误")
 	}
 	if itm.cnt <= 0 {
 		return false, ErrCodeVerifyTooMany
 	}
 	itm.cnt--
-	return itm.code == code, nil
+	return itm.code == inputCode, nil
 }
 
-func (l *LocalCodeCache) key(biz, phone string) string {
+func (l *LocalCodeCache) key(biz string, phone string) string {
 	return fmt.Sprintf("phone_code:%s:%s", biz, phone)
 }
 
 type codeItem struct {
 	code string
-	//可验证次数
+	// 可验证次数
 	cnt int
-	//过期时间
+	// 过期时间
 	expire time.Time
 }

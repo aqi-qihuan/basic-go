@@ -11,7 +11,7 @@ type InteractiveService interface {
 	IncrReadCnt(ctx context.Context, biz string, bizId int64) error
 	Like(c context.Context, biz string, id int64, uid int64) error
 	CancelLike(c context.Context, biz string, id int64, uid int64) error
-	Collect(c context.Context, biz string, bizId int64, cid int64, uid int64) error
+	Collect(ctx context.Context, biz string, bizId, cid, uid int64) error
 	Get(ctx context.Context, biz string, id int64, uid int64) (domain.Interactive, error)
 }
 
@@ -39,7 +39,7 @@ func (i *interactiveService) Get(ctx context.Context, biz string, id int64, uid 
 	return intr, eg.Wait()
 }
 
-func (i *interactiveService) Collect(ctx context.Context, biz string, bizId int64, cid int64, uid int64) error {
+func (i *interactiveService) Collect(ctx context.Context, biz string, bizId, cid, uid int64) error {
 	return i.repo.AddCollectionItem(ctx, biz, bizId, cid, uid)
 }
 

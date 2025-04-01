@@ -2,12 +2,12 @@ package startup
 
 import (
 	"basic-go/lmbook/internal/repository/dao"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 func InitDB() *gorm.DB {
-	db, err := gorm.Open(sqlite.Open("root:root@tcp(localhost:13316)/lmbook"), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open("root:root@tcp(localhost:13316)/lmbook"), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}

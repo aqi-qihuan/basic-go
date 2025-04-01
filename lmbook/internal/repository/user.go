@@ -15,6 +15,7 @@ var (
 	ErrUserNotFound  = dao.ErrRecordNotFound
 )
 
+//go:generate mockgen -source=./user.go -package=repomocks -destination=./mocks/user.mock.go UserRepository
 type UserRepository interface {
 	Create(ctx context.Context, u domain.User) error
 	FindByEmail(ctx context.Context, email string) (domain.User, error)
@@ -145,6 +146,13 @@ func (repo *CachedUserRepository) UpdateNonZeroFields(ctx context.Context,
 }
 
 func (repo *CachedUserRepository) FindById(ctx context.Context, uid int64) (domain.User, error) {
+	//if ctx.Value("x-stress") != true {
+	//	du, err := repo.cache.Get(ctx, uid)
+	//	// 只要 err 为 nil，就返回
+	//	if err == nil {
+	//		return du, nil
+	//	}
+	//}
 	du, err := repo.cache.Get(ctx, uid)
 	// 只要 err 为 nil，就返回
 	if err == nil {

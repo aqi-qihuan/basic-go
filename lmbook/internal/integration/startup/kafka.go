@@ -7,12 +7,11 @@ import (
 func InitSaramaClient() sarama.Client {
 	scfg := sarama.NewConfig()
 	scfg.Producer.Return.Successes = true
-	client, err := sarama.NewClient([]string{"localhost:9092"}, scfg)
+	client, err := sarama.NewClient([]string{"localhost:9094"}, scfg)
 	if err != nil {
 		panic(err)
 	}
 	return client
-
 }
 
 func InitSyncProducer(c sarama.Client) sarama.SyncProducer {
