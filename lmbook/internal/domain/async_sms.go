@@ -1,6 +1,6 @@
 package domain
 
-type AsyncSMS struct {
+type AsyncSms struct {
 	Id      int64
 	TplId   string
 	Args    []string

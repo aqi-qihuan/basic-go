@@ -17,7 +17,6 @@ import (
 
 // 你可以用这个来单独测试你的 OSS 配置对不对，有没有权
 func TestS3(t *testing.T) {
-
 	// 腾讯云中对标 s3 和 OSS 的产品叫做 COS
 	cosId, ok := os.LookupEnv("COS_APP_ID")
 	if !ok {

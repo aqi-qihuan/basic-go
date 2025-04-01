@@ -20,11 +20,12 @@ var thirdPartySet = wire.NewSet( // 第三方依赖
 	InitRedis, InitDB,
 	InitLogger)
 
-var userSvcProvider = wire.NewSet( // Service 部分
+var userSvcProvider = wire.NewSet(
 	dao.NewUserDAO,
-	cache.NewCodeCache,
+	cache.NewUserCache,
 	repository.NewCachedUserRepository,
 	service.NewUserService)
+
 var articlSvcProvider = wire.NewSet(
 	repository.NewCachedArticleRepository,
 	cache.NewArticleRedisCache,
@@ -42,7 +43,7 @@ func InitWebServer() *gin.Engine {
 		thirdPartySet,
 		userSvcProvider,
 		articlSvcProvider,
-
+		interactiveSvcSet,
 		// cache 部分
 		cache.NewCodeCache,
 
@@ -51,7 +52,7 @@ func InitWebServer() *gin.Engine {
 
 		// Service 部分
 		ioc.InitSMSService,
-		service.NewUserService,
+		service.NewCodeService,
 		InitWechatService,
 
 		// handler 部分
@@ -76,12 +77,12 @@ func InitAsyncSmsService(svc sms.Service) *async.Service {
 func InitArticleHandler(dao dao.ArticleDAO) *web.ArticleHandler {
 	wire.Build(
 		thirdPartySet,
-		articlSvcProvider,
+		userSvcProvider,
+		interactiveSvcSet,
 		repository.NewCachedArticleRepository,
 		cache.NewArticleRedisCache,
 		service.NewArticleService,
-		web.NewArticleHandler,
-	)
+		web.NewArticleHandler)
 	return &web.ArticleHandler{}
 }
 

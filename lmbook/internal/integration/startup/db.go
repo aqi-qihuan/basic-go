@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func Init() *gorm.DB {
+func InitDB() *gorm.DB {
 	db, err := gorm.Open(sqlite.Open("root:root@tcp(localhost:13316)/lmbook"), &gorm.Config{})
 	if err != nil {
 		panic(err)
