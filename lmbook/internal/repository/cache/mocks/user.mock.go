@@ -40,17 +40,17 @@ func (m *MockUserCache) EXPECT() *MockUserCacheMockRecorder {
 }
 
 // Del mocks base method.
-func (m *MockUserCache) Del(ctx context.Context, uid int64) error {
+func (m *MockUserCache) Del(ctx context.Context, id int64) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Del", ctx, uid)
+	ret := m.ctrl.Call(m, "Del", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Del indicates an expected call of Del.
-func (mr *MockUserCacheMockRecorder) Del(ctx, uid any) *gomock.Call {
+func (mr *MockUserCacheMockRecorder) Del(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Del", reflect.TypeOf((*MockUserCache)(nil).Del), ctx, uid)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Del", reflect.TypeOf((*MockUserCache)(nil).Del), ctx, id)
 }
 
 // Get mocks base method.
