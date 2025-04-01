@@ -3,6 +3,7 @@
 package main
 
 import (
+	"basic-go/lmbook/internal/events/article"
 	"basic-go/lmbook/internal/repository"
 	"basic-go/lmbook/internal/repository/cache"
 	"basic-go/lmbook/internal/repository/dao"
@@ -10,7 +11,6 @@ import (
 	"basic-go/lmbook/internal/web"
 	ijwt "basic-go/lmbook/internal/web/jwt"
 	"basic-go/lmbook/ioc"
-	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 )
 
@@ -20,16 +20,22 @@ var interactiveSvcSet = wire.NewSet(dao.NewGORMInteractiveDAO,
 	service.NewInteractiveService,
 )
 
-func InitWebServer() *gin.Engine {
+func InitWebServer() *App {
 	wire.Build(
 		// 第三方依赖
 		ioc.InitRedis, ioc.InitDB,
 		ioc.InitLogger,
+		ioc.InitSaramaClient,
+		ioc.InitSyncProducer,
 		// DAO 部分
 		dao.NewUserDAO,
 		dao.NewArticleGORMDAO,
 
 		interactiveSvcSet,
+
+		article.NewSaramaSyncProducer,
+		article.NewInteractiveReadEventConsumer,
+		ioc.InitConsumers,
 
 		// cache 部分
 		cache.NewCodeCache, cache.NewUserCache,
@@ -54,6 +60,8 @@ func InitWebServer() *gin.Engine {
 		web.NewOAuth2WechatHandler,
 		ioc.InitGinMiddlewares,
 		ioc.InitWebServer,
+
+		wire.Struct(new(App), "*"),
 	)
-	return gin.Default()
+	return new(App)
 }

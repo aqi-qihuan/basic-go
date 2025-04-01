@@ -3,6 +3,7 @@
 package startup
 
 import (
+	"basic-go/lmbook/internal/events/article"
 	"basic-go/lmbook/internal/repository"
 	"basic-go/lmbook/internal/repository/cache"
 	"basic-go/lmbook/internal/repository/dao"
@@ -18,6 +19,8 @@ import (
 
 var thirdPartySet = wire.NewSet( // 第三方依赖
 	InitRedis, InitDB,
+	InitSaramaClient,
+	InitSyncProducer,
 	InitLogger)
 
 var userSvcProvider = wire.NewSet(
@@ -49,6 +52,8 @@ func InitWebServer() *gin.Engine {
 
 		// repository 部分
 		repository.NewCodeRepository,
+
+		article.NewSaramaSyncProducer,
 
 		// Service 部分
 		ioc.InitSMSService,
@@ -82,6 +87,7 @@ func InitArticleHandler(dao dao.ArticleDAO) *web.ArticleHandler {
 		repository.NewCachedArticleRepository,
 		cache.NewArticleRedisCache,
 		service.NewArticleService,
+		article.NewSaramaSyncProducer,
 		web.NewArticleHandler)
 	return &web.ArticleHandler{}
 }
