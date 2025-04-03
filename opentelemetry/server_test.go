@@ -34,7 +34,7 @@ func TestServer(t *testing.T) {
 	server := gin.Default()
 	server.GET("/test", func(ginCtx *gin.Context) {
 		// 名字唯一
-		tracer := otel.Tracer("gitee.com/geekbang/basic-go/opentelemetry")
+		tracer := otel.Tracer("basic-go/opentelemetry")
 		var ctx context.Context = ginCtx
 		ctx, span := tracer.Start(ctx, "top-span")
 		defer span.End()

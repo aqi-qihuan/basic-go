@@ -12,7 +12,12 @@ func TestSyncProducer(t *testing.T) {
 	cfg := sarama.NewConfig()
 	cfg.Producer.Return.Successes = true
 	producer, err := sarama.NewSyncProducer(addr, cfg)
-	cfg.Producer.Partitioner = sarama.NewRandomPartitioner
+	cfg.Producer.Partitioner = sarama.NewRoundRobinPartitioner
+	//cfg.Producer.Partitioner = sarama.NewRandomPartitioner
+	//cfg.Producer.Partitioner = sarama.NewHashPartitioner
+	//cfg.Producer.Partitioner = sarama.NewManualPartitioner
+	//cfg.Producer.Partitioner = sarama.NewConsistentCRCHashPartitioner
+	//cfg.Producer.Partitioner = sarama.NewCustomPartitioner()
 	assert.NoError(t, err)
 	for i := 0; i < 100; i++ {
 		_, _, err = producer.SendMessage(&sarama.ProducerMessage{

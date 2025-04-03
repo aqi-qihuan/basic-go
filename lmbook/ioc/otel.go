@@ -38,8 +38,7 @@ func newResource(serviceName, serviceVersion string) (*resource.Resource, error)
 		resource.NewWithAttributes(semconv.SchemaURL,
 			semconv.ServiceName(serviceName),
 			semconv.ServiceVersion(serviceVersion),
-		),
-	)
+		))
 }
 
 func newTraceProvider(res *resource.Resource) (*trace.TracerProvider, error) {

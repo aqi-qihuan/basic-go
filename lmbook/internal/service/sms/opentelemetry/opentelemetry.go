@@ -3,6 +3,7 @@ package opentelemetry
 import (
 	"basic-go/lmbook/internal/service/sms"
 	"context"
+	"go.opentelemetry.io/otel
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )

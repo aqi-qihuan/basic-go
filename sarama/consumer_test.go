@@ -16,7 +16,7 @@ func TestConsumer(t *testing.T) {
 	assert.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*10)
 	defer cancel()
-	start := time.Now
+	start := time.Now()
 	err = consumer.Consume(ctx,
 		[]string{"test_topic"}, ConsumerHandler{})
 	assert.NoError(t, err)
@@ -46,7 +46,6 @@ func (c ConsumerHandler) ConsumeClaim(session sarama.ConsumerGroupSession,
 	msgs := claim.Messages()
 	const batchSize = 10
 	for {
-		log.Println("一个批次开始")
 		batch := make([]*sarama.ConsumerMessage, 0, batchSize)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		var done = false
