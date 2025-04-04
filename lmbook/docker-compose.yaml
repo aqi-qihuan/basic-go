@@ -45,15 +45,11 @@ services:
   etcd:
     image: "bitnami/etcd:latest"
     restart: always
-    environment:
-      - ALLOW_NON_AUTHENTICATION=yes
+    environment: # ✅ 正确配置位置
+      - ALLOW_NONE_AUTHENTICATION=yes  # 注意变量名是 ALLOW_NONE 不是 ALLOW_NON
     ports:
       - "12379:2379"
-    entrypoint:
-      - /bin/sh
-      - -c
-      - |
-        /opt/bitnami/scripts/etcd/run.sh --advertise-client-urls=http://0.0.0.0:2379 --listen-client-urls=http://0.0.0.0:2379
+
 
   grafana:
     image: grafana/grafana-enterprise:10.2.0
