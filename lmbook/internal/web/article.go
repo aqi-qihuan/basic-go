@@ -4,9 +4,10 @@ import (
 	"basic-go/lmbook/internal/domain"
 	"basic-go/lmbook/internal/service"
 	"basic-go/lmbook/internal/web/jwt"
-	"basic-go/lmbook/pkg/ginx/middleware"
+	"basic-go/lmbook/pkg/ginx"
 	"basic-go/lmbook/pkg/logger"
 	"fmt"
+	"github.com/ecodeclub/ekit
 	"github.com/ecodeclub/ekit/slice"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/sync/errgroup"

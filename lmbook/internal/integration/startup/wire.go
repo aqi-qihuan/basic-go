@@ -4,6 +4,7 @@ package startup
 
 import (
 	"basic-go/lmbook/internal/events/article"
+	"basic-go/lmbook/internal/job"
 	"basic-go/lmbook/internal/repository"
 	"basic-go/lmbook/internal/repository/cache"
 	"basic-go/lmbook/internal/repository/dao"

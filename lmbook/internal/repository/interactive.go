@@ -33,6 +33,7 @@ func NewCachedInteractiveRepository(dao dao.InteractiveDAO,
 	cache cache.InteractiveCache) InteractiveRepository {
 	return &CachedInteractiveRepository{dao: dao, cache: cache}
 }
+
 func (c *CachedInteractiveRepository) GetByIds(ctx context.Context, biz string, ids []int64) ([]domain.Interactive, error) {
 	intrs, err := c.dao.GetByIds(ctx, biz, ids)
 	if err != nil {
@@ -150,6 +151,7 @@ func (c *CachedInteractiveRepository) IncrReadCnt(ctx context.Context, biz strin
 
 func (c *CachedInteractiveRepository) toDomain(ie dao.Interactive) domain.Interactive {
 	return domain.Interactive{
+		BizId:      ie.BizId,
 		ReadCnt:    ie.ReadCnt,
 		LikeCnt:    ie.LikeCnt,
 		CollectCnt: ie.CollectCnt,

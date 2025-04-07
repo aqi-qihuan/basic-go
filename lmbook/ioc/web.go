@@ -4,7 +4,7 @@ import (
 	"basic-go/lmbook/internal/web"
 	ijwt "basic-go/lmbook/internal/web/jwt"
 	"basic-go/lmbook/internal/web/middleware"
-	ginx "basic-go/lmbook/pkg/ginx/middleware"
+	"basic-go/lmbook/pkg/ginx"
 	"basic-go/lmbook/pkg/ginx/middleware/prometheus"
 	"basic-go/lmbook/pkg/logger"
 	"github.com/gin-contrib/cors"

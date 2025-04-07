@@ -1,7 +1,7 @@
 package ratelimit
 
 import (
-	"basic-go/lmbook/pkg/limiter"
+	"basic-go
 	"context"
 	_ "embed"
 	"fmt"

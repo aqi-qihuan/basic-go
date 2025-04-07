@@ -54,16 +54,16 @@ func (dao *GORMJobDAO) Preempt(ctx context.Context) (Job, error) {
 func (dao *GORMJobDAO) Release(ctx context.Context, jid int64) error {
 	now := time.Now().UnixMilli()
 	return dao.db.WithContext(ctx).Model(&Job{}).
-		Where("id =? ", jid).Updates(map[string]any{
+		Where("id = ?", jid).Updates(map[string]any{
 		"status": jobStatusWaiting,
 		"utime":  now,
 	}).Error
 }
 
-func (dao *GORMJobDAO) UpdateUtime(ctx context.Context, id int64) error {
+func (dao *GORMJobDAO) UpdateUtime(ctx context.Context, jid int64) error {
 	now := time.Now().UnixMilli()
 	return dao.db.WithContext(ctx).Model(&Job{}).
-		Where("id =? ", id).Updates(map[string]any{
+		Where("id = ?", jid).Updates(map[string]any{
 		"utime": now,
 	}).Error
 }

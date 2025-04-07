@@ -5,7 +5,7 @@ import (
 	"basic-go/lmbook/internal/errs"
 	"basic-go/lmbook/internal/service"
 	ijwt "basic-go/lmbook/internal/web/jwt"
-	ginx "basic-go/lmbook/pkg/ginx/middleware"
+	"basic-go/lmbook/pkg/ginx"
 	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"

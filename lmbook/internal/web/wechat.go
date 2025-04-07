@@ -4,7 +4,7 @@ import (
 	"basic-go/lmbook/internal/service"
 	"basic-go/lmbook/internal/service/oauth2/wechat"
 	ijwt "basic-go/lmbook/internal/web/jwt"
-	ginx "basic-go/lmbook/pkg/ginx/middleware"
+	"basic-go/lmbook/pkg/ginx"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
