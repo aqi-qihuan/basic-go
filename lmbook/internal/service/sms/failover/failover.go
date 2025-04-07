@@ -1,7 +1,7 @@
 package failover
 
 import (
-	"basic-go
+	"basic-go/lmbook/internal/service/sms"
 	"context"
 	"errors"
 	"log"
