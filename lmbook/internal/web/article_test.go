@@ -5,7 +5,7 @@ import (
 	"basic-go/lmbook/internal/service"
 	svcmocks "basic-go/lmbook/internal/service/mocks"
 	ijwt "basic-go/lmbook/internal/web/jwt"
-	"basic-go/lmbook/pkg/ginx"
+	ginx "basic-go/lmbook/pkg/ginx/middleware"
 	"basic-go/lmbook/pkg/logger"
 	"bytes"
 	"encoding/json"

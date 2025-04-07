@@ -2,7 +2,7 @@ package integration
 
 import (
 	"basic-go/lmbook/internal/integration/startup"
-	"basic-go/lmbook/pkg/ginx"
+	ginx "basic-go/lmbook/pkg/ginx/middleware"
 	"bytes"
 	"context"
 	"encoding/json"
