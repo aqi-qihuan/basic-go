@@ -23,6 +23,11 @@ var thirdPartySet = wire.NewSet( // 第三方依赖
 	InitSyncProducer,
 	InitLogger)
 
+var jobProviderSet = wire.NewSet(
+	service.NewCronJobService,
+	repository.NewPreemptJobRepository,
+	dao.NewGORMJobDAO)
+
 var userSvcProvider = wire.NewSet(
 	dao.NewUserDAO,
 	cache.NewUserCache,
@@ -95,4 +100,9 @@ func InitArticleHandler(dao dao.ArticleDAO) *web.ArticleHandler {
 func InitInteractiveService() service.InteractiveService {
 	wire.Build(thirdPartySet, interactiveSvcSet)
 	return service.NewInteractiveService(nil)
+}
+
+func InitJobScheduler() *job.Scheduler {
+	wire.Build(jobProviderSet, thirdPartySet, job.NewScheduler)
+	return &job.Scheduler{}
 }
