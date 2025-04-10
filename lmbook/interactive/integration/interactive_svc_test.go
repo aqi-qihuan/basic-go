@@ -1,8 +1,9 @@
 package integration
 
 import (
+	intrv1 "basic-go/lmbook/api/proto/gen/intr/v1"
+	"basic-go/lmbook/interactive/integration/startup"
 	"basic-go/lmbook/interactive/repository/dao"
-	"basic-go/lmbook/internal/integration/startup"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"

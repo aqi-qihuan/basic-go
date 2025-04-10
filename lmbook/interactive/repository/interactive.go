@@ -3,9 +3,10 @@ package repository
 import (
 	"basic-go/lmbook/interactive/domain"
 	"basic-go/lmbook/interactive/repository/cache"
-	"basic-go/lmbook/internal/repository/dao"
+	"basic-go/lmbook/interactive/repository/dao"
 	"basic-go/lmbook/pkg/logger"
 	"context"
+	"github.com/ecodeclub/
 	"github.com/ecodeclub/ekit/slice"
 )
 

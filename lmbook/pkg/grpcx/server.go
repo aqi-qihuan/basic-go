@@ -17,3 +17,4 @@ func (s *Server) Serve() error {
 	}
 	return s.Server.Serve(l)
 }
+.

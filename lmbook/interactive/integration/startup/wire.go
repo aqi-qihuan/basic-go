@@ -3,6 +3,7 @@
 package startup
 
 import (
+	"basic-go/lmbook/interactive/grpc"
 	repository2 "basic-go/lmbook/interactive/repository"
 	cache2 "basic-go/lmbook/interactive/repository/cache"
 	dao2 "basic-go/lmbook/interactive/repository/dao"

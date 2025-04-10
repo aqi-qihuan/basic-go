@@ -29,8 +29,8 @@ func NewInteractiveReadEventConsumer(repo repository.InteractiveRepository,
 //	}
 //	go func() {
 //		er := cg.Consume(context.Background(),
-//			[]string{article.TopicReadEvent},
-//			samarax.NewBatchHandler[article.ReadEvent](i.l, i.BatchConsume))
+//			[]string{TopicReadEvent},
+//			samarax.NewBatchHandler[ReadEvent](i.l, i.BatchConsume))
 //		if er != nil {
 //			i.l.Error("退出消费", logger.Error(er))
 //		}
@@ -38,7 +38,7 @@ func NewInteractiveReadEventConsumer(repo repository.InteractiveRepository,
 //	return err
 //}
 
-func (i *InteractiveReadEventConsumer) StartV1() error {
+func (i *InteractiveReadEventConsumer) Start() error {
 	cg, err := sarama.NewConsumerGroupFromClient("interactive", i.client)
 	if err != nil {
 		return err
@@ -60,7 +60,7 @@ type ReadEvent struct {
 }
 
 //func (i *InteractiveReadEventConsumer) BatchConsume(msgs []*sarama.ConsumerMessage,
-//	events []article.ReadEvent) error {
+//	events []ReadEvent) error {
 //	bizs := make([]string, 0, len(events))
 //	bizIds := make([]int64, 0, len(events))
 //	for _, evt := range events {

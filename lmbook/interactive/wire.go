@@ -4,11 +4,12 @@ package main
 
 import (
 	"basic-go/lmbook/interactive/events"
+	"basic-go/lmbook/interactive/grpc"
+	"basic-go/lmbook/interactive/ioc"
 	repository2 "basic-go/lmbook/interactive/repository"
 	cache2 "basic-go/lmbook/interactive/repository/cache"
 	dao2 "basic-go/lmbook/interactive/repository/dao"
 	service2 "basic-go/lmbook/interactive/service"
-	"basic-go/lmbook/ioc"
 	"github.com/google/wire"
 )
 

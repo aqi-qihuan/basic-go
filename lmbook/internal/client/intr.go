@@ -3,6 +3,7 @@ package client
 import (
 	intrv1 "basic-go/lmbook/api/proto/gen/intr/v1"
 	"context"
+	"github.com/ecodeclub/ekit/syn
 	"github.com/ecodeclub/ekit/syncx/atomicx"
 	"google.golang.org/grpc"
 	"math/rand"

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package lmbook.intr.v1;
+package intr.v1;
 option go_package = "intr/v1;intrv1";
 
 service InteractiveService {

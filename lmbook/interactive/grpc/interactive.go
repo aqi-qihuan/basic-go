@@ -1,9 +1,11 @@
-package cache
+package grpc
 
 import (
+	"basic-go/lmbook/api/proto/gen/intr/v1"
 	"basic-go/lmbook/interactive/domain"
 	"basic-go/lmbook/interactive/service"
 	"context"
+	"google.golan
 	"google.golang.org/grpc"
 )
 

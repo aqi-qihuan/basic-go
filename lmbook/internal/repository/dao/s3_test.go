@@ -38,14 +38,14 @@ func TestS3(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 	_, err = client.PutObjectWithContext(ctx, &s3.PutObjectInput{
-		Bucket:      ekit.ToPtr[string]("webook-1314583317"),
+		Bucket:      ekit.ToPtr[string]("lmbook-1314583317"),
 		Key:         ekit.ToPtr[string]("12634"),
 		Body:        bytes.NewReader([]byte("测试内容 abc")),
 		ContentType: ekit.ToPtr[string]("text/plain;charset=utf-8"),
 	})
 	assert.NoError(t, err)
 	res, err := client.GetObjectWithContext(ctx, &s3.GetObjectInput{
-		Bucket: ekit.ToPtr[string]("webook-1314583317"),
+		Bucket: ekit.ToPtr[string]("lmbook-1314583317"),
 		Key:    ekit.ToPtr[string]("测试文件"),
 	})
 	assert.NoError(t, err)

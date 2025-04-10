@@ -9,7 +9,6 @@ import (
 	"net/http"
 )
 
-// 因为你没有传入 -tags=wireinject, 所以你最终用的是 wire_gen 中的定义。
 func main() {
 	initViperV1()
 	app := InitApp()
