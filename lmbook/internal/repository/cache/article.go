@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"basic-go
+	"basic-go/lmbook/internal/domain"
 	"context"
 	"encoding/json"
 	"fmt"
