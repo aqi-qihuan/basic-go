@@ -1,8 +1,8 @@
 package service
 
 import (
-	"basic-go/lmbook/internal/domain"
-	"basic-go/lmbook/internal/repository"
+	"basic-go/lmbook/interactive/domain"
+	"basic-go/lmbook/interactive/repository"
 	"context"
 	"golang.org/x/sync/errgroup"
 )

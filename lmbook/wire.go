@@ -3,6 +3,11 @@
 package main
 
 import (
+	"basic-go/lmbook/interactive/events"
+	repository2 "basic-go/lmbook/interactive/repository"
+	cache2 "basic-go/lmbook/interactive/repository/cache"
+	dao2 "basic-go/lmbook/interactive/repository/dao"
+	service2 "basic-go/lmbook/interactive/service"
 	"basic-go/lmbook/internal/events/article"
 	"basic-go/lmbook/internal/repository"
 	"basic-go/lmbook/internal/repository/cache"
@@ -14,10 +19,10 @@ import (
 	"github.com/google/wire"
 )
 
-var interactiveSvcSet = wire.NewSet(dao.NewGORMInteractiveDAO,
-	cache.NewInteractiveRedisCache,
-	repository.NewCachedInteractiveRepository,
-	service.NewInteractiveService,
+var interactiveSvcSet = wire.NewSet(dao2.NewGORMInteractiveDAO,
+	cache2.NewInteractiveRedisCache,
+	repository2.NewCachedInteractiveRepository,
+	service2.NewInteractiveService,
 )
 
 var rankingSvcSet = wire.NewSet(
@@ -39,12 +44,13 @@ func InitWebServer() *App {
 		dao.NewArticleGORMDAO,
 
 		interactiveSvcSet,
+		ioc.InitIntrClient,
 		rankingSvcSet,
 		ioc.InitJobs,
 		ioc.InitRankingJob,
 
 		article.NewSaramaSyncProducer,
-		article.NewInteractiveReadEventConsumer,
+		events.NewInteractiveReadEventConsumer,
 		ioc.InitConsumers,
 
 		// cache 部分

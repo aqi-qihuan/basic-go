@@ -3,6 +3,10 @@
 package startup
 
 import (
+	repository2 "basic-go/lmbook/interactive/repository"
+	cache2 "basic-go/lmbook/interactive/repository/cache"
+	dao2 "basic-go/lmbook/interactive/repository/dao"
+	service2 "basic-go/lmbook/interactive/service"
 	"basic-go/lmbook/internal/events/article"
 	"basic-go/lmbook/internal/job"
 	"basic-go/lmbook/internal/repository"
@@ -41,10 +45,11 @@ var articlSvcProvider = wire.NewSet(
 	dao.NewArticleGORMDAO,
 	service.NewArticleService)
 
-var interactiveSvcSet = wire.NewSet(dao.NewGORMInteractiveDAO,
-	cache.NewInteractiveRedisCache,
-	repository.NewCachedInteractiveRepository,
-	service.NewInteractiveService,
+var interactiveSvcSet = wire.NewSet(dao2.NewGORMInteractiveDAO,
+	cache2.NewInteractiveRedisCache,
+	repository2.NewCachedInteractiveRepository,
+	service2.NewInteractiveService,
+	ioc.InitIntrClient,
 )
 
 func InitWebServer() *gin.Engine {
@@ -96,11 +101,6 @@ func InitArticleHandler(dao dao.ArticleDAO) *web.ArticleHandler {
 		article.NewSaramaSyncProducer,
 		web.NewArticleHandler)
 	return &web.ArticleHandler{}
-}
-
-func InitInteractiveService() service.InteractiveService {
-	wire.Build(thirdPartySet, interactiveSvcSet)
-	return service.NewInteractiveService(nil)
 }
 
 func InitJobScheduler() *job.Scheduler {

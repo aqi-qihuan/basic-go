@@ -1,6 +1,7 @@
 package service
 
 import (
+	intrv1 "basic-go/lmbook/api/proto/gen/intr/v1"
 	"basic-go/lmbook/internal/domain"
 	"basic-go/lmbook/internal/repository"
 	"context"
@@ -18,7 +19,7 @@ type RankingService interface {
 
 type BatchRankingService struct {
 	// 用来取点赞数
-	intrSvc InteractiveService
+	intrSvc intrv1.InteractiveServiceClient
 
 	// 用来查找文章
 	artSvc ArticleService
@@ -30,7 +31,8 @@ type BatchRankingService struct {
 	repo repository.RankingRepository
 }
 
-func NewBatchRankingService(intrSvc InteractiveService, artSvc ArticleService) RankingService {
+func NewBatchRankingService(intrSvc intrv1.InteractiveServiceClient,
+	artSvc ArticleService) RankingService {
 	return &BatchRankingService{
 		intrSvc:   intrSvc,
 		artSvc:    artSvc,
@@ -91,10 +93,13 @@ func (b *BatchRankingService) topN(ctx context.Context) ([]domain.Article, error
 			return art.Id
 		})
 		// 取点赞数
-		intrMap, err := b.intrSvc.GetByIds(ctx, "article", ids)
+		intrResp, err := b.intrSvc.GetByIds(ctx, &intrv1.GetByIdsRequest{
+			Biz: "article", Ids: ids,
+		})
 		if err != nil {
 			return nil, err
 		}
+		intrMap := intrResp.Intrs
 		for _, art := range arts {
 			intr := intrMap[art.Id]
 			//intr, ok := intrMap[art.Id]

@@ -1,6 +1,7 @@
 package ioc
 
 import (
+	dao2 "basic-go/lmbook/interactive/repository/dao"
 	"basic-go/lmbook/internal/repository/dao"
 	"basic-go/lmbook/pkg/gormx"
 	"basic-go/lmbook/pkg/logger"
@@ -74,6 +75,10 @@ func InitDB(l logger.LoggerV1) *gorm.DB {
 	}
 
 	err = dao.InitTables(db)
+	if err != nil {
+		panic(err)
+	}
+	err = dao2.InitTables(db)
 	if err != nil {
 		panic(err)
 	}

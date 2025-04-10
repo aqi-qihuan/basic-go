@@ -45,7 +45,7 @@ func (a *ArticleS3DAO) SyncStatus(ctx context.Context, uid int64, id int64, stat
 	const statusPrivate = 3
 	if status == statusPrivate {
 		_, err = a.oss.DeleteObjectWithContext(ctx, &s3.DeleteObjectInput{
-			Bucket: ekit.ToPtr[string]("lmbook-1314583317"),
+			Bucket: ekit.ToPtr[string]("webook-1314583317"),
 			Key:    ekit.ToPtr[string](strconv.FormatInt(id, 10)),
 		})
 	}
@@ -93,7 +93,7 @@ func (a *ArticleS3DAO) Sync(ctx context.Context, art Article) (int64, error) {
 		return 0, err
 	}
 	_, err = a.oss.PutObjectWithContext(ctx, &s3.PutObjectInput{
-		Bucket:      ekit.ToPtr[string]("lmbook-1314583317"),
+		Bucket:      ekit.ToPtr[string]("webook-1314583317"),
 		Key:         ekit.ToPtr[string](strconv.FormatInt(art.Id, 10)),
 		Body:        bytes.NewReader([]byte(art.Content)),
 		ContentType: ekit.ToPtr[string]("text/plain;charset=utf-8"),

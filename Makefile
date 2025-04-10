@@ -15,5 +15,9 @@ mock:
 	@mockgen -source=./lmbook/internal/repository/cache/user.go -package=cachemocks -destination=./lmbook/internal/repository/cache/mocks/user.mock.go
 	@mockgen -source=./lmbook/internal/repository/cache/code.go -package=cachemocks -destination=./lmbook/internal/repository/cache/mocks/code.mock.go
 	@mockgen -source=./lmbook/pkg/limiter/types.go -package=limitermocks -destination=./lmbook/pkg/limiter/mocks/limiter.mock.go
-	@mockgen -package=redismocks -destination=lmbook/internal/repository/cache/redismocks/cmdable.mock.go github.com/redis/go-redis/v9 Cmdable
+	@mockgen -package=redismocks -destination=lmbook/internal/repository/cache/redismocks/cmd.mock.go github.com/redis/go-redis/v9 Cmdable
 	@go mod tidy
+
+.PHONY: grpc
+grpc:
+	@buf generate lmbook/api/proto
