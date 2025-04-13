@@ -2,7 +2,9 @@ package ioc
 
 import (
 	events2 "basic-go/lmbook/interactive/events"
+	"basic-go/lmbook/interactive/repository/dao"
 	"basic-go/lmbook/internal/events"
+	"basic-go/lmbook/pkg/migrator/events/fixer"
 	"github.com/IBM/sarama"
 	"github.com/spf13/viper"
 )
@@ -25,6 +27,14 @@ func InitSaramaClient() sarama.Client {
 	return client
 }
 
-func InitConsumers(c1 *events2.InteractiveReadEventConsumer) []events.Consumer {
-	return []events.Consumer{c1}
+func InitSaramaSyncProducer(client sarama.Client) sarama.SyncProducer {
+	p, err := sarama.NewSyncProducerFromClient(client)
+	if err != nil {
+		panic(err)
+	}
+	return p
+}
+
+func InitConsumers(c1 *events2.InteractiveReadEventConsumer, fixConsumer *fixer.Consumer[dao.Interactive]) []events.Consumer {
+	return []events.Consumer{c1, fixConsumer}
 }
