@@ -60,6 +60,7 @@ func initPrometheus() {
 }
 
 func initLogger() {
+	zap.NewProductionConfig()
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		panic(err)
@@ -91,9 +92,6 @@ func initViperWatch() {
 	viper.SetConfigType("yaml")
 	viper.SetConfigFile(*cfile)
 	viper.WatchConfig()
-	viper.OnConfigChange(func(in fsnotify.Event) {
-		log.Println(viper.GetString("test.key"))
-	})
 	// 读取配置
 	err := viper.ReadInConfig()
 	if err != nil {
