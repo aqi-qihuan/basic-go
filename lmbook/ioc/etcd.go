@@ -5,7 +5,7 @@ import (
 	etcdv3 "go.etcd.io/etcd/client/v3"
 )
 
-func InitEtcdClient() *etcdv3.Client {
+func InitEtcd() *etcdv3.Client {
 	type Config struct {
 		Addrs []string
 	}
