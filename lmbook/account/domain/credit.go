@@ -3,7 +3,7 @@ package domain
 type Credit struct {
 	Biz   string
 	BizId int64
-	Items []*CreditItem
+	Items []CreditItem
 }
 
 type CreditItem struct {
@@ -13,6 +13,7 @@ type CreditItem struct {
 	Amt         int64
 	Currency    string
 }
+
 type AccountType uint8
 
 func (a AccountType) AsUint8() uint8 {
@@ -21,6 +22,6 @@ func (a AccountType) AsUint8() uint8 {
 
 const (
 	AccountTypeUnknown = iota
-	AccountTypesReward
+	AccountTypeReward
 	AccountTypeSystem
 )
