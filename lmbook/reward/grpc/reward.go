@@ -1,19 +1,51 @@
 package grpc
 
 import (
-	"basic-go/lmbook/account/domain"
-	"basic-go/lmbook/account/service"
-	accountv1 "basic-go/lmbook/api/proto/gen/account/v1"
+	"basic-go/lmbook/api/proto/gen/reward/v1"
+	"basic-go/lmbook/reward/domain"
+	"basic-go/lmbook/reward/service"
 	"context"
-	"github.com/ecodeclub/ekit/slice"
 	"google.golang.org/grpc"
 )
 
-type AccountService struct {
-	accountV1.UnimplementedAccountServiceServer
-	svc service.AccountService
+type RewardServiceServer struct {
+	rewardv1.UnimplementedRewardServiceServer
+	svc service.RewardService
 }
 
-func NewAccountService(svc service.AccountService) *AccountService {
+func NewRewardServiceServer(svc service.RewardService) *RewardServiceServer {
+	return &RewardServiceServer{svc: svc}
+}
 
+func (r *RewardServiceServer) Register(server *grpc.Server) {
+	rewardv1.RegisterRewardServiceServer(server, r)
+}
+
+func (r *RewardServiceServer) PreReward(ctx context.Context, request *rewardv1.PreRewardRequest) (*rewardv1.PreRewardResponse, error) {
+	codeURL, err := r.svc.PreReward(ctx, domain.Reward{
+		Uid: request.Uid,
+		Target: domain.Target{
+			Biz:     request.Biz,
+			BizId:   request.BizId,
+			BizName: request.BizName,
+			Uid:     request.Uid,
+		},
+		Amt: request.Amt,
+	})
+	return &rewardv1.PreRewardResponse{
+		CodeUrl: codeURL.URL,
+		Rid:     codeURL.Rid,
+	}, err
+}
+
+func (r *RewardServiceServer) GetReward(ctx context.Context,
+	req *rewardv1.GetRewardRequest) (*rewardv1.GetRewardResponse, error) {
+	rw, err := r.svc.GetReward(ctx, req.GetRid(), req.GetUid())
+	if err != nil {
+		return nil, err
+	}
+	return &rewardv1.GetRewardResponse{
+		// 两个的取值是一样的，所以可以直接转
+		Status: rewardv1.RewardStatus(rw.Status),
+	}, nil
 }
