@@ -1,7 +1,7 @@
 package startup
 
 import (
-	"basic-go
+	"basic-go/lmbook/reward/repository/dao"
 	"context"
 	"database/sql"
 	"gorm.io/driver/mysql"

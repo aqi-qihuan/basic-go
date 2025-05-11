@@ -9,8 +9,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/redis/go-redis/v9"
-	"github.com/stretc
-	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
