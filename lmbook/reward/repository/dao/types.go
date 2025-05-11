@@ -12,10 +12,9 @@ type RewardDAO interface {
 
 type Reward struct {
 	Id      int64  `gorm:"primaryKey,autoIncrement" bson:"id,omitempty"`
-	Biz     string `gorm:"index:idx_biz_biz_id"`
-	BizId   int64  `gorm:"index:idx_biz_biz_id"`
+	Biz     string `gorm:"index:biz_biz_id"`
+	BizId   int64  `gorm:"index:biz_biz_id"`
 	BizName string
-
 	// 被打赏的人
 	TargetUid int64 `gorm:"index"`
 
