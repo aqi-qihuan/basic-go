@@ -5,7 +5,6 @@ import (
 	"basic-go/lmbook/pkg/migrator"
 	"basic-go/lmbook/pkg/migrator/events"
 	"context"
-	"github.com/ecodeclub/
 	"github.com/ecodeclub/ekit/slice"
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"

@@ -3,7 +3,6 @@ package trace
 import (
 	"basic-go/lmbook/pkg/grpcx/interceptor"
 	"context"
-	"github.com/go-kratos/kratos
 	"github.com/go-kratos/kratos/v2/errors"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
