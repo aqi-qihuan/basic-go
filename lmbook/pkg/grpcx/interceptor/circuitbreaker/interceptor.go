@@ -12,14 +12,13 @@ type InterceptorBuilder struct {
 	breaker circuitbreaker.CircuitBreaker
 }
 
-func (b *InterceptorBuilder) BuildServerUnaryInterceptorBiz() grpc.UnaryServerInterceptor {
+func (b *InterceptorBuilder) BuildServerUnaryInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any,
-		info *grpc.UnaryServerInfo,
-		handler grpc.UnaryHandler) (resp any, err error) {
+		info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		err = b.breaker.Allow()
 		if err == nil {
 			resp, err = handler(ctx, req)
-			if err != nil {
+			if err == nil {
 				b.breaker.MarkSuccess()
 			} else {
 				// 更加仔细检测，只有真实代表服务端出现故障的，才 mark failed

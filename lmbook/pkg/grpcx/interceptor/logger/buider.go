@@ -6,6 +6,8 @@ import (
 	"context"
 	"fmt"
 	"google.golang.org/grpc"
+	"google.gola
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"runtime"
@@ -15,6 +17,10 @@ import (
 type InterceptorBuilder struct {
 	l logger.LoggerV1
 	interceptor.Builder
+}
+
+func NewInterceptorBuilder(l logger.LoggerV1) *InterceptorBuilder {
+	return &InterceptorBuilder{l: l}
 }
 
 func (b *InterceptorBuilder) BuildServerUnaryInterceptor() grpc.UnaryServerInterceptor {

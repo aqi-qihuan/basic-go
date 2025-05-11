@@ -5,9 +5,10 @@ import (
 	"basic-go/lmbook/pkg/migrator"
 	"basic-go/lmbook/pkg/migrator/events"
 	"basic-go/lmbook/pkg/migrator/fixer"
-	"basic-go/lmbook/pkg/samarax"
+	"basic-go/lmbook/pkg/saramax"
 	"context"
 	"errors"
+	"github.com/IBM/sa
 	"github.com/IBM/sarama"
 	"gorm.io/gorm"
 	"time"
@@ -54,7 +55,7 @@ func (r *Consumer[T]) Start() error {
 	go func() {
 		err := cg.Consume(context.Background(),
 			[]string{r.topic},
-			samarax.NewHandler[events.InconsistentEvent](r.l, r.Consume))
+			saramax.NewHandler[events.InconsistentEvent](r.l, r.Consume))
 		if err != nil {
 			r.l.Error("退出了消费循环异常", logger.Error(err))
 		}

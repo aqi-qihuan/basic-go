@@ -9,7 +9,7 @@ service RewardService {
 }
 
 message GetRewardRequest {
-  //  rid 和 打赏的人
+//  rid 和 打赏的人
   int64 rid = 1;
   int64 uid = 2;
 }
@@ -21,10 +21,10 @@ message GetRewardResponse {
 }
 
 enum RewardStatus {
-  RewardStatusUnknown = 0;
-  RewardStatusInit = 1;
-  RewardStatusPayed = 2;
-  RewardStatusFailed = 3;
+    RewardStatusUnknown = 0;
+    RewardStatusInit = 1;
+    RewardStatusPayed = 2;
+    RewardStatusFailed = 3;
 }
 
 message PreRewardRequest {

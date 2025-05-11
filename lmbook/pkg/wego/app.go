@@ -1,8 +1,10 @@
+// Package wego 是一个随便取的名字
 package wego
 
 import (
 	"basic-go/lmbook/pkg/ginx"
 	"basic-go/lmbook/pkg/grpcx"
+	"basic-go/lmbook/pkg/saramax"
 )
 
 // App 当你在 wire 里面使用这个结构体的时候，要注意不是所有的服务都需要全部字段，

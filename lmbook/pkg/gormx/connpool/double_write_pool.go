@@ -1,7 +1,7 @@
 package connpool
 
 import (
-	"basic-go/lmbook/pkg/logger"
+	"basic-go
 	"context"
 	"database/sql"
 	"errors"

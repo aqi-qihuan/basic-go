@@ -3,6 +3,7 @@ package ratelimit
 import (
 	"basic-go/lmbook/pkg/limiter"
 	"context"
+	"google.golan
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -16,11 +17,9 @@ type InterceptorBuilder struct {
 
 // NewInterceptorBuilder key 1. limiter:interactive-service => 整个点赞的应用限流
 func NewInterceptorBuilder(limiter limiter.Limiter, key string) *InterceptorBuilder {
-	return &InterceptorBuilder{
-		limiter: limiter,
-		key:     key,
-	}
+	return &InterceptorBuilder{limiter: limiter, key: key}
 }
+
 func (b *InterceptorBuilder) BuildServerUnaryInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context,
 		req any, info *grpc.UnaryServerInfo,
@@ -31,6 +30,7 @@ func (b *InterceptorBuilder) BuildServerUnaryInterceptor() grpc.UnaryServerInter
 			// 这个是保守的做法
 			return nil, status.Errorf(codes.ResourceExhausted, "限流")
 		}
+
 		if limited {
 			return nil, status.Errorf(codes.ResourceExhausted, "限流")
 		}
