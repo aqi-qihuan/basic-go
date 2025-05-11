@@ -2,7 +2,7 @@ package service
 
 import (
 	"basic-go/lmbook/reward/domain"
-	
+	"context"
 )
 
 //go:generate mockgen -source=./types.go -destination=mocks/reward.mock.go -package=svcmocks RewardService
