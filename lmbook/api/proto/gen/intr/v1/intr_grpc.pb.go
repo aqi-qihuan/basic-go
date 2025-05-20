@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             (unknown)
-// source: intr/v1/interactive.proto
+// source: intr/v1/intr.proto
 
 package intrv1
 
@@ -32,8 +32,11 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type InteractiveServiceClient interface {
 	IncrReadCnt(ctx context.Context, in *IncrReadCntRequest, opts ...grpc.CallOption) (*IncrReadCntResponse, error)
+	// Like 点赞
 	Like(ctx context.Context, in *LikeRequest, opts ...grpc.CallOption) (*LikeResponse, error)
+	// CancelLike 取消点赞
 	CancelLike(ctx context.Context, in *CancelLikeRequest, opts ...grpc.CallOption) (*CancelLikeResponse, error)
+	// Collect 收藏
 	Collect(ctx context.Context, in *CollectRequest, opts ...grpc.CallOption) (*CollectResponse, error)
 	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error)
 	GetByIds(ctx context.Context, in *GetByIdsRequest, opts ...grpc.CallOption) (*GetByIdsResponse, error)
@@ -106,8 +109,11 @@ func (c *interactiveServiceClient) GetByIds(ctx context.Context, in *GetByIdsReq
 // for forward compatibility
 type InteractiveServiceServer interface {
 	IncrReadCnt(context.Context, *IncrReadCntRequest) (*IncrReadCntResponse, error)
+	// Like 点赞
 	Like(context.Context, *LikeRequest) (*LikeResponse, error)
+	// CancelLike 取消点赞
 	CancelLike(context.Context, *CancelLikeRequest) (*CancelLikeResponse, error)
+	// Collect 收藏
 	Collect(context.Context, *CollectRequest) (*CollectResponse, error)
 	Get(context.Context, *GetRequest) (*GetResponse, error)
 	GetByIds(context.Context, *GetByIdsRequest) (*GetByIdsResponse, error)
@@ -290,5 +296,5 @@ var InteractiveService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "intr/v1/interactive.proto",
+	Metadata: "intr/v1/intr.proto",
 }
