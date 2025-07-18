@@ -12,7 +12,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	dao "gitee.com/geekbang/basic-go/webook/comment/repository/dao"
+	dao "basic-go/lmbook/comment/repository/dao"
 	gomock "go.uber.org/mock/gomock"
 )
 
