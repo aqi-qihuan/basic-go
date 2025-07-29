@@ -1,80 +1,100 @@
 package events
 
 import (
-	"basic-go/lmbook/interactive/repository"
+	"basic-go/lmbook/pkg/canalx"
 	"basic-go/lmbook/pkg/logger"
-	"basic-go/lmbook/pkg/samarax"
+	"basic-go/lmbook/pkg/migrator"
+	"basic-go/lmbook/pkg/migrator/events"
+	"basic-go/lmbook/pkg/migrator/validator"
+	"basic-go/lmbook/pkg/saramax"
 	"context"
 	"github.com/IBM/sarama"
+	"gorm.io/gorm"
+	"sync/atomic"
 	"time"
 )
 
-const TopicReadEvent = "article_read"
-
-type InteractiveReadEventConsumer struct {
-	repo   repository.InteractiveRepository
-	client sarama.Client
-	l      logger.LoggerV1
+type MySQLBinlogConsumer[T migrator.Entity] struct {
+	client   sarama.Client
+	l        logger.LoggerV1
+	table    string
+	srcToDst *validator.CanalIncrValidator[T]
+	dstToSrc *validator.CanalIncrValidator[T]
+	dstFirst *atomic.Bool
 }
 
-func NewInteractiveReadEventConsumer(repo repository.InteractiveRepository,
-	client sarama.Client, l logger.LoggerV1) *InteractiveReadEventConsumer {
-	return &InteractiveReadEventConsumer{repo: repo, client: client, l: l}
+func NewMySQLBinlogConsumer[T migrator.Entity](
+	client sarama.Client,
+	l logger.LoggerV1,
+	table string,
+	src *gorm.DB,
+	dst *gorm.DB,
+	p events.Producer) *MySQLBinlogConsumer[T] {
+	srcToDst := validator.NewCanalIncrValidator[T](src, dst, "SRC", l, p)
+	dstToSrc := validator.NewCanalIncrValidator[T](src, dst, "DST", l, p)
+	return &MySQLBinlogConsumer[T]{
+		client: client, l: l,
+		dstFirst: &atomic.Bool{},
+		srcToDst: srcToDst,
+		dstToSrc: dstToSrc,
+		table:    table}
 }
 
-//func (i *InteractiveReadEventConsumer) Start() error {
-//	cg, err := sarama.NewConsumerGroupFromClient("interactive", i.client)
-//	if err != nil {
-//		return err
-//	}
-//	go func() {
-//		er := cg.Consume(context.Background(),
-//			[]string{TopicReadEvent},
-//			samarax.NewBatchHandler[ReadEvent](i.l, i.BatchConsume))
-//		if er != nil {
-//			i.l.Error("退出消费", logger.Error(er))
-//		}
-//	}()
-//	return err
-//}
-
-func (i *InteractiveReadEventConsumer) Start() error {
-	cg, err := sarama.NewConsumerGroupFromClient("interactive", i.client)
+func (r *MySQLBinlogConsumer[T]) Start() error {
+	cg, err := sarama.NewConsumerGroupFromClient("migrator_incr",
+		r.client)
 	if err != nil {
 		return err
 	}
 	go func() {
-		er := cg.Consume(context.Background(),
-			[]string{TopicReadEvent},
-			samarax.NewHandler[ReadEvent](i.l, i.Consume))
-		if er != nil {
-			i.l.Error("退出消费", logger.Error(er))
+		err := cg.Consume(context.Background(),
+			[]string{"lmbook_binlog"},
+			saramax.NewHandler[canalx.Message[T]](r.l, r.Consume))
+		if err != nil {
+			r.l.Error("退出了消费循环异常", logger.Error(err))
 		}
 	}()
 	return err
 }
 
-type ReadEvent struct {
-	Aid int64
-	Uid int64
+func (r *MySQLBinlogConsumer[T]) Consume(msg *sarama.ConsumerMessage,
+	val canalx.Message[T]) error {
+	// 首先判定这个消息我要不要处理
+
+	// 以源表为准还是以目标表为准
+	dstFirst := r.dstFirst.Load()
+	var v *validator.CanalIncrValidator[T]
+	// db:
+	//  src:
+	//    dsn: "root:root@tcp(localhost:13316)/lmbook"
+	//  dst:
+	//    dsn: "root:root@tcp(localhost:13316)/lmbook_intr"
+	// 出于保险，你可以进一步校验表名
+	if dstFirst && val.Database == "lmbook_intr" {
+		// 以目标表为准，过来的也恰好是目标表的 binlog
+		// 要校验
+		v = r.dstToSrc
+	} else if !dstFirst && val.Database == "lmbook" {
+		// 以源表为准，过来的也恰好是源表的 binlog
+		// 要校验
+		v = r.srcToDst
+	}
+
+	if v == nil {
+		return nil
+	}
+
+	for _, data := range val.Data {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		err := v.Validate(ctx, data.ID())
+		cancel()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-//func (i *InteractiveReadEventConsumer) BatchConsume(msgs []*sarama.ConsumerMessage,
-//	events []ReadEvent) error {
-//	bizs := make([]string, 0, len(events))
-//	bizIds := make([]int64, 0, len(events))
-//	for _, evt := range events {
-//		bizs = append(bizs, "article")
-//		bizIds = append(bizIds, evt.Aid)
-//	}
-//	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-//	defer cancel()
-//	return i.repo.BatchIncrReadCnt(ctx, bizs, bizIds)
-//}
-
-func (i *InteractiveReadEventConsumer) Consume(msg *sarama.ConsumerMessage,
-	event ReadEvent) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	return i.repo.IncrReadCnt(ctx, "article", event.Aid)
+func (r *MySQLBinlogConsumer[T]) DstFirst() {
+	r.dstFirst.Store(true)
 }
