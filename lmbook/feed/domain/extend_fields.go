@@ -8,7 +8,7 @@ import (
 
 type ExtendFields map[string]string
 
-var errKeyNotFound = errors.New(" 没有找到对应的 key")
+var errKeyNotFound = errors.New("没有找到对应的 key")
 
 func (f ExtendFields) Get(key string) ekit.AnyValue {
 	val, ok := f[key]
