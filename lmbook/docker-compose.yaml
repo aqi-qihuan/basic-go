@@ -4,7 +4,11 @@ services:
   mysql8:
     image: mysql:8.0.32
     restart: always
-    command: --default-authentication-plugin=mysql_native_password
+    command:
+      #      - 加入参数，设置 binlog 和主节点
+      - --default_authentication_plugin=mysql_native_password
+      - --binlog-format=ROW
+      - --server-id=1
     environment:
       MYSQL_ROOT_PASSWORD: root
     volumes:
@@ -20,6 +24,10 @@ services:
       - ./prometheus.yaml:/etc/prometheus/prometheus.yml
     ports:
       - 9090:9090
+    command:
+      # 开启remote writer
+      - "--web.enable-remote-write-receiver"
+      - "--config.file=/etc/prometheus/prometheus.yml"
   zipkin:
       #    用的是不支持 Kafka 之类的简化版本
     image: openzipkin/zipkin-slim:2.24
@@ -62,6 +70,8 @@ services:
       - '9094:9094'
     environment:
       - KAFKA_CFG_NODE_ID=0
+      #      - 三个分区
+      - KAFKA_CREATE_TOPICS=lmbook_binlog:3:1
       #      - 允许自动创建 topic，线上不要开启
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
       - KAFKA_CFG_PROCESS_ROLES=controller,broker
