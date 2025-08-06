@@ -1,0 +1,186 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Modern Chat</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript">        window.onload = function () {
+        var conn;
+        var msg = document.getElementById("msg");
+        var log = document.getElementById("log");
+
+        function appendLog(item) {
+            var doScroll = log.scrollTop > log.scrollHeight - log.clientHeight - 1;
+            log.appendChild(item);
+            if (doScroll) {
+                log.scrollTop = log.scrollHeight - log.clientHeight;
+            }
+        }
+
+        document.getElementById("form").onsubmit = function () {
+            if (!conn) {
+                return false;
+            }
+            if (!msg.value) {
+                return false;
+            }
+            conn.send(msg.value);
+            msg.value = "";
+            return false;
+        };
+
+        if (window["WebSocket"]) {
+            conn = new WebSocket("ws://" + document.location.host + "/ws");
+            conn.onclose = function (evt) {
+                var item = document.createElement("div");
+                item.className = "status";
+                item.textContent = "Connection closed.";
+                appendLog(item);
+            };
+            conn.onmessage = function (evt) {
+                var messages = evt.data.split('\n');
+                for (var i = 0; i < messages.length; i++) {
+                    if (messages[i] === '') continue;
+                    var item = document.createElement("div");
+                    item.className = "message";
+                    item.textContent = messages[i];
+                    appendLog(item);
+                }
+            };
+        } else {
+            var item = document.createElement("div");
+            item.className = "status";
+            item.textContent = "Your browser does not support WebSockets.";
+            appendLog(item);
+        }
+    };
+    </script>
+    <style type="text/css">        * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    html, body {
+        height: 100%;
+        background-color: #f5f7fb;
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 800px;
+        width: 100%;
+        margin: 0 auto;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    #log {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        border-bottom: 1px solid #eee;
+    }
+
+    .message {
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        background: #f0f4f8;
+        border-radius: 18px;
+        max-width: 80%;
+        word-wrap: break-word;
+    }
+
+    .status {
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        color: #666;
+        font-style: italic;
+        text-align: center;
+    }
+
+    #form {
+        display: flex;
+        padding: 15px;
+        background: #fff;
+        border-top: 1px solid #eee;
+    }
+
+    #msg {
+        flex: 1;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 24px;
+        outline: none;
+        font-size: 15px;
+        transition: border-color 0.3s;
+    }
+
+    #msg:focus {
+        border-color: #4a90e2;
+    }
+
+    input[type="submit"] {
+        background: #4a90e2;
+        color: white;
+        border: none;
+        border-radius: 24px;
+        padding: 12px 24px;
+        margin-left: 10px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background 0.3s;
+    }
+
+    input[type="submit"]:hover {
+        background: #3a7bc8;
+    }
+
+    @media (max-width: 600px) {
+        body {
+            padding: 10px;
+        }
+
+        .container {
+            border-radius: 8px;
+        }
+
+        #log {
+            padding: 15px;
+        }
+
+        #form {
+            padding: 12px;
+        }
+
+        #msg {
+            padding: 10px 12px;
+        }
+
+        input[type="submit"] {
+            padding: 10px 20px;
+        }
+    }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="log"></div>
+    <form id="form">
+        <input type="text" id="msg" placeholder="Type your message..." autocomplete="off" autofocus />
+        <input type="submit" value="Send" />
+    </form>
+</div>
+</body>
+</html>
