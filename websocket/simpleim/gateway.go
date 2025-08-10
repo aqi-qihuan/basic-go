@@ -103,22 +103,22 @@ func (g *WsGateway) wsHandler(writer http.ResponseWriter, request *http.Request)
 
 // Uid 一般是从 jwt token 或者 session 里面取出来
 // 这里模拟从 header 里面读取出来
-func (s *WsGateway) Uid(req *http.Request) int64 {
+func (g *WsGateway) Uid(req *http.Request) int64 {
 	uidStr := req.Header.Get("uid")
 	uid, _ := strconv.ParseInt(uidStr, 10, 64)
 	return uid
 }
 
-func (s *WsGateway) Consume(msg *sarama.ConsumerMessage, event Event) error {
-	// 我要消费
-	conn, ok := s.conns.Load(event.Receiver)
+func (g *WsGateway) consume(msg *sarama.ConsumerMessage, evt Event) error {
+	conn, ok := g.conns.Load(evt.Receiver)
 	if !ok {
 		log.Println("当前节点上没有这个用户，直接返回")
 		return nil
 	}
-	return conn.Send(event.Msg)
+	return conn.Send(evt.Msg)
 }
 
+// Conn 稍微做一个封装
 type Conn struct {
 	*websocket.Conn
 }
@@ -128,20 +128,19 @@ func (c *Conn) Send(msg Message) error {
 	if err != nil {
 		return err
 	}
-	return c.Conn.WriteMessage(websocket.TextMessage, val)
+	return c.WriteMessage(websocket.TextMessage, val)
 }
 
-// Message 前后端交互的数据格式
 type Message struct {
-	// 前端的序列号
-	Seq string `json:"seq"`
-	// 标记是什么类型的消息
-	// 比如说图片，视频
-	// {"type": "image", content:"http://myimage"}
-	Type string `json:"type"`
-	// 内容肯定有
-	Content string `json:"content"`
-	// 你发给谁？
-	// channel id
+	// 发过来的消息的序列号
+	// 用于前后端关联消息
+	Seq string
+	// 用来标识不同的消息类型
+	// 文本消息，视频消息
+	// 系统消息（后端往前端发的，跟 IM 本身管理有关的消息）
+	Type    string
+	Content string
+	// 聊天 ID，注意，正常来说这里不是记录目标用户 ID
+	// 而是记录代表了这个聊天的 ID
 	Cid int64
 }

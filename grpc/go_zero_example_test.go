@@ -2,13 +2,14 @@ package grpc
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeromicro/go-zero/core/discov"
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"
-	"testing"
-	"time"
 )
 
 type GoZeroTestSuite struct {
@@ -61,7 +62,7 @@ func (s *GoZeroTestSuite) startServer(addr string) {
 	// 创建一个服务器，并且注册服务实例
 	server := zrpc.MustNewServer(c, func(grpcServer *grpc.Server) {
 		RegisterUserServiceServer(grpcServer, &Server{
-			Name: addr,
+			name: addr,
 		})
 	})
 
