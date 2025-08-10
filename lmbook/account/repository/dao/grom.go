@@ -2,9 +2,10 @@ package dao
 
 import (
 	"context"
+	"time"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"time"
 )
 
 type AccountGORMDAO struct {
@@ -18,7 +19,8 @@ func NewCreditGORMDAO(db *gorm.DB) AccountDAO {
 func (c *AccountGORMDAO) AddActivities(ctx context.Context, activities ...AccountActivity) error {
 	return c.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		now := time.Now().UnixMilli()
-		// 针对每一个 activity，入账
+		// 一般在用户注册的时候就会创建好账号，但是我们并咩有，所以要兼容处理一下
+		// 注意，系统账号是默认肯定存在的，一般是离线创建好的
 		for _, act := range activities {
 			err := c.db.Clauses(clause.OnConflict{
 				DoUpdates: clause.Assignments(map[string]any{

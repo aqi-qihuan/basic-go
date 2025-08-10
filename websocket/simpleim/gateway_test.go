@@ -1,12 +1,12 @@
 package simpleim
 
 import (
+	"testing"
+
 	"github.com/IBM/sarama"
 	"github.com/ecodeclub/ekit/syncx"
-	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type GatewayTestSuite struct {
@@ -45,12 +45,11 @@ func (g *GatewayTestSuite) startGateway(instance, addr string) error {
 	require.NoError(g.T(), err)
 	gateway := &WsGateway{
 		conns: &syncx.Map[int64, *Conn]{},
-		svc: &Service{
+		svc: &IMService{
 			producer: producer,
 		},
-		upgrader:   &websocket.Upgrader{},
 		client:     g.client,
-		instanceID: instance,
+		instanceId: instance,
 	}
 	return gateway.Start(addr)
 }

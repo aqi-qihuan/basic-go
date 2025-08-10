@@ -33,7 +33,9 @@ const (
 type InteractiveServiceClient interface {
 	IncrReadCnt(ctx context.Context, in *IncrReadCntRequest, opts ...grpc.CallOption) (*IncrReadCntResponse, error)
 	Like(ctx context.Context, in *LikeRequest, opts ...grpc.CallOption) (*LikeResponse, error)
+	// CancelLike 取消点赞
 	CancelLike(ctx context.Context, in *CancelLikeRequest, opts ...grpc.CallOption) (*CancelLikeResponse, error)
+	// Collect 收藏
 	Collect(ctx context.Context, in *CollectRequest, opts ...grpc.CallOption) (*CollectResponse, error)
 	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error)
 	GetByIds(ctx context.Context, in *GetByIdsRequest, opts ...grpc.CallOption) (*GetByIdsResponse, error)
@@ -107,7 +109,9 @@ func (c *interactiveServiceClient) GetByIds(ctx context.Context, in *GetByIdsReq
 type InteractiveServiceServer interface {
 	IncrReadCnt(context.Context, *IncrReadCntRequest) (*IncrReadCntResponse, error)
 	Like(context.Context, *LikeRequest) (*LikeResponse, error)
+	// CancelLike 取消点赞
 	CancelLike(context.Context, *CancelLikeRequest) (*CancelLikeResponse, error)
+	// Collect 收藏
 	Collect(context.Context, *CollectRequest) (*CollectResponse, error)
 	Get(context.Context, *GetRequest) (*GetResponse, error)
 	GetByIds(context.Context, *GetByIdsRequest) (*GetByIdsResponse, error)

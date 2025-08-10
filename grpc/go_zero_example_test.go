@@ -29,7 +29,7 @@ func (s *GoZeroTestSuite) TestGoZeroClient() {
 	client := NewUserServiceClient(zClient.Conn())
 	for i := 0; i < 10; i++ {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		resp, err := client.GetByID(ctx, &GetByIDRequest{
+		resp, err := client.GetById(ctx, &GetByIdReq{
 			Id: 123,
 		})
 		cancel()

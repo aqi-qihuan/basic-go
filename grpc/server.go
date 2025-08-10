@@ -2,29 +2,29 @@ package grpc
 
 import (
 	"context"
-	"go.opentelemetry.io/otel"
+	"fmt"
 	"log"
 	"time"
 )
 
 type Server struct {
 	UnimplementedUserServiceServer
-	Name string
+	name string
 }
 
-func (s *Server) GetByID(ctx context.Context, request *GetByIDRequest) (*GetByIDResponse, error) {
-	ctx, span := otel.Tracer("server_biz").Start(ctx, "get_by_id")
-	defer span.End()
+func (s *Server) GetById(
+	ctx context.Context,
+	req *GetByIdReq) (*GetByIdResp, error) {
 	ddl, ok := ctx.Deadline()
 	if ok {
 		rest := ddl.Sub(time.Now())
-		log.Println(rest.String())
+		fmt.Println(rest.String())
 	}
-	time.Sleep(time.Millisecond * 1000)
-	return &GetByIDResponse{
+	log.Println("命中服务器", s.name)
+	return &GetByIdResp{
 		User: &User{
-			Id:   123,
-			Name: "from" + s.Name,
+			Id:   req.Id,
+			Name: s.name,
 		},
 	}, nil
 }

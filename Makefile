@@ -1,23 +1,35 @@
+# 你可以直接执行 make 命令，也可以单独的命令复制到控制台。
+# 注意，如果你是 Windows 并且不是在 WSL 下，
+# 要注意文件分隔符使用 Windows 的分隔符。
+.PHONY: generate
+generate:
+	@make mock
 .PHONY: mock
 mock:
-	@mockgen -source=./lmbook/internal/service/user.go -package=svcmocks -destination=./lmbook/internal/service/mocks/user.mock.go
-	@mockgen -source=./lmbook/internal/service/code.go -package=svcmocks -destination=./lmbook/internal/service/mocks/code.mock.go
-	@mockgen -source=./lmbook/internal/service/article.go -package=svcmocks -destination=./lmbook/internal/service/mocks/article.mock.go
-	@mockgen -source=./lmbook/internal/service/sms/types.go -package=smsmocks -destination=./lmbook/internal/service/sms/mocks/sms.mock.go
-	@mockgen -source=./lmbook/internal/repository/code.go -package=repomocks -destination=./lmbook/internal/repository/mocks/code.mock.go
-	@mockgen -source=./lmbook/internal/repository/user.go -package=repomocks -destination=./lmbook/internal/repository/mocks/user.mock.go
-	@mockgen -source=./lmbook/internal/repository/article.go -package=repomocks -destination=./lmbook/internal/repository/mocks/article.mock.go
-	@mockgen -source=./lmbook/internal/repository/article_author.go -package=repomocks -destination=./lmbook/internal/repository/mocks/article_author.mock.go
-	@mockgen -source=./lmbook/internal/repository/article_reader.go -package=repomocks -destination=./lmbook/internal/repository/mocks/article_reader.mock.go
-	@mockgen -source=./lmbook/internal/repository/dao/user.go -package=daomocks -destination=./lmbook/internal/repository/dao/mocks/user.mock.go
-	@mockgen -source=./lmbook/internal/repository/dao/article_reader.go -package=daomocks -destination=./lmbook/internal/repository/dao/mocks/article_reader.mock.go
-	@mockgen -source=./lmbook/internal/repository/dao/article_author.go -package=daomocks -destination=./lmbook/internal/repository/dao/mocks/article_author.mock.go
-	@mockgen -source=./lmbook/internal/repository/cache/user.go -package=cachemocks -destination=./lmbook/internal/repository/cache/mocks/user.mock.go
-	@mockgen -source=./lmbook/internal/repository/cache/code.go -package=cachemocks -destination=./lmbook/internal/repository/cache/mocks/code.mock.go
-	@mockgen -source=./lmbook/pkg/limiter/types.go -package=limitermocks -destination=./lmbook/pkg/limiter/mocks/limiter.mock.go
-	@mockgen -package=redismocks -destination=lmbook/internal/repository/cache/redismocks/cmd.mock.go github.com/redis/go-redis/v9 Cmdable
+	@go generate -tags=wireinject ./...
 	@go mod tidy
 
 .PHONY: grpc
 grpc:
 	@buf generate lmbook/api/proto
+
+.PHONY: grpc_mock
+grpc_mock:
+	@mockgen -source=lmbook/api/proto/gen/article/v1/article_grpc.pb.go -package=artmocks -destination=lmbook/api/proto/gen/article/v1/mocks/article_grpc.mock.go
+	@mockgen -source=lmbook/api/proto/gen/intr/v1/interactive_grpc.pb.go -package=intrmocks -destination=lmbook/api/proto/gen/intr/v1/mocks/interactive_grpc.mock.go
+	@mockgen -source=lmbook/api/proto/gen/payment/v1/payment_grpc.pb.go -package=pmtmocks -destination=lmbook/api/proto/gen/payment/v1/mocks/payment_grpc.mock.go
+	@mockgen -source=lmbook/api/proto/gen/follow/v1/follow_grpc.pb.go -package=followmocks -destination=lmbook/api/proto/gen/follow/v1/mocks/follow_grpc.mock.go
+
+
+.PHONY: e2e
+e2e:
+	@docker compose -f lmbook/docker-compose.yaml down
+	@docker compose -f lmbook/docker-compose.yaml up -d
+	@go test -race ./lmbook/... -tags=e2e
+	@docker compose -f lmbook/docker-compose.yaml down
+.PHONY: e2e_up
+e2e_up:
+	@docker compose -f lmbook/docker-compose.yaml up -d
+.PHONY: e2e_down
+e2e_down:
+	@docker compose -f lmbook/docker-compose.yaml down

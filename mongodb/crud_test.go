@@ -3,90 +3,114 @@ package mongodb
 import (
 	"context"
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/event"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"testing"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/event"
+
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func TestMongoDB(t *testing.T) {
-
-	// 创建一个带有超时的上下文
+func TestCRUD(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel() // 确保在函数结束时取消上下文，释放资源
-
-	// 创建一个命令监控器，用于监控MongoDB命令的执行
+	defer cancel()
 	monitor := &event.CommandMonitor{
-		Started: func(_ context.Context, evt *event.CommandStartedEvent) {
-			fmt.Println(evt.Command) // 打印开始执行的命令
+		Started: func(ctx context.Context,
+			startedEvent *event.CommandStartedEvent) {
+			fmt.Println(startedEvent.Command)
 		},
 	}
-	// 配置MongoDB客户端选项，包括连接URI和命令监控器
 	opts := options.Client().
-		ApplyURI("mongodb://root:example@localhost:27017").
+		ApplyURI("mongodb://root:example@localhost:27017/").
 		SetMonitor(monitor)
-	// 连接到MongoDB
 	client, err := mongo.Connect(ctx, opts)
-	assert.NoError(t, err) // 断言连接没有错误
-	//操作 client
-	col := client.Database("lmbook").
-		Collection("articles")
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		// 用完就是要记得关掉。正常来说，都是在应用退出的时候关掉。
+		_ = client.Disconnect(context.Background())
+	}()
 
-	insertRes, err := col.InsertOne(ctx, Article{
-		Id:       1,
+	col := client.Database("webook").
+		Collection("articles")
+	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	res, err := col.InsertOne(ctx, Article{
+		Id:       123,
 		Title:    "我的标题",
 		Content:  "我的内容",
-		AuthorId: 123,
+		AuthorId: 12,
+		Status:   1,
+		Ctime:    time.Now().UnixMilli(),
+		Utime:    time.Now().UnixMilli(),
 	})
-
-	assert.NoError(t, err)
-	oid := insertRes.InsertedID.(primitive.ObjectID)
-	t.Log("插入ID", oid)
-
-	filter := bson.M{
-		"id": 1,
+	if err != nil {
+		panic(err)
 	}
+	fmt.Printf("插入ID %s \n", res.InsertedID)
+
+	// 用 bson 来构造查询条件
+	filter := bson.D{bson.E{Key: "id", Value: 123}}
 	findRes := col.FindOne(ctx, filter)
-	if findRes.Err() == mongo.ErrNoDocuments {
-		t.Log("没有找到数据")
 
-	} else {
-		assert.NoError(t, findRes.Err())
-		var art Article
-		err = findRes.Decode(&art)
-		assert.NoError(t, err)
-		t.Log(art)
+	var art Article
+	err = findRes.Decode(&art)
+	if err != nil {
+		panic(err)
 	}
-	updateFilter := bson.D{bson.E{"id", 1}}
-	//set := bson.D{bson.E{Key: "$set", Value: bson.E{Key: "title", Value: "新的标题"}}}
-	set := bson.D{bson.E{Key: "$set", Value: bson.M{
-		"title": "新的标题",
-	}}}
-	updateOneRes, err := col.UpdateOne(ctx, updateFilter, set)
-	assert.NoError(t, err)
-	t.Log("更新文档数量", updateOneRes.ModifiedCount)
 
-	updateManyRes, err := col.UpdateMany(ctx, updateFilter,
-		bson.D{bson.E{Key: "$set",
-			Value: Article{Content: "新的内容"}}})
-	assert.NoError(t, err)
-	t.Log("更新文档数量", updateManyRes.ModifiedCount)
-	deleteFilter := bson.D{bson.E{"id", 1}}
-	delRes, err := col.DeleteMany(ctx, deleteFilter)
-	assert.NoError(t, err)
-	t.Log("删除文档数量", delRes.DeletedCount)
+	findRes = col.FindOne(ctx, Article{Id: 123})
+	if findRes.Err() == mongo.ErrNoDocuments {
+		// 这边查询不到
+		fmt.Println(err)
+	}
+
+	// 只更新标题字段
+	sets := bson.D{bson.E{Key: "$set",
+		Value: bson.E{Key: "title", Value: "新的标题"}}}
+	updateOneRes, err := col.UpdateOne(ctx, filter, sets)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Update One 更新了 %d 条数据 \n", updateOneRes.MatchedCount)
+
+	updateManyRes, err := col.UpdateMany(ctx, filter,
+		bson.D{bson.E{Key: "$set", Value: Article{
+			Id:    123,
+			Title: "直接使用文档更新",
+		}}})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Update Many 更新了 %d 条数据 \n", updateManyRes.MatchedCount)
+
+	findRes = col.FindOne(ctx, filter)
+	art = Article{}
+	err = findRes.Decode(&art)
+	if err != nil {
+		panic(err)
+	}
+	delRes, err := col.DeleteMany(ctx, filter)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("删除了 %d 条数据\n", delRes.DeletedCount)
+}
+
+func TestOr(t *testing.T) {
+
 }
 
 type Article struct {
-	Id       int64  `bson:"id,omitempty"`
-	Title    string `bson:"title,omitempty"`
-	Content  string `bson:"content,omitempty"`
-	AuthorId int64  `bson:"author_id,omitempty"`
-	Status   uint8  `bson:"status,omitempty"`
-	Ctime    int64  `bson:"ctime,omitempty"`
-	Utime    int64  `bson:"utime,omitempty"`
+	Id      int64  `bson:"id"`
+	Title   string `bson:"title,omitempty"`
+	Content string `bson:"content,omitempty"`
+	// 作者
+	AuthorId int64
+	Status   uint8
+	Ctime    int64
+	Utime    int64
 }

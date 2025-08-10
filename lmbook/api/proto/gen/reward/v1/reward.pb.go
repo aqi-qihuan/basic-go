@@ -182,16 +182,14 @@ type PreRewardRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// 代表被打赏的东西
-	Biz   string `protobuf:"bytes,1,opt,name=biz,proto3" json:"biz,omitempty"`
-	BizId int64  `protobuf:"varint,2,opt,name=biz_id,json=bizId,proto3" json:"biz_id,omitempty"`
-	// 给用户看的，让用户明白自己打赏了什么东西
+	Biz     string `protobuf:"bytes,1,opt,name=biz,proto3" json:"biz,omitempty"`
+	BizId   int64  `protobuf:"varint,2,opt,name=biz_id,json=bizId,proto3" json:"biz_id,omitempty"`
 	BizName string `protobuf:"bytes,3,opt,name=biz_name,json=bizName,proto3" json:"biz_name,omitempty"`
-	// 被打赏的人，收钱的人
+	// 被打赏的人，也就是收钱的那个
 	TargetUid int64 `protobuf:"varint,4,opt,name=target_uid,json=targetUid,proto3" json:"target_uid,omitempty"`
-	// 打赏的人，付钱的人
+	// 打赏的人，也就是付钱的那个
 	Uid int64 `protobuf:"varint,5,opt,name=uid,proto3" json:"uid,omitempty"`
-	// 打赏的金额
+	// 打赏金额
 	Amt int64 `protobuf:"varint,6,opt,name=amt,proto3" json:"amt,omitempty"`
 }
 
@@ -274,8 +272,12 @@ type PreRewardResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	//	打赏这个东西，不存在说后面换支付啥的，
+	//
+	// 或者说至少现在没有啥必要考虑
+	// 所以直接耦合了微信扫码支付的 code_url 的说法
 	CodeUrl string `protobuf:"bytes,1,opt,name=code_url,json=codeUrl,proto3" json:"code_url,omitempty"`
-	// 代表这一次打赏的 id
+	// 打赏的 ID
 	Rid int64 `protobuf:"varint,2,opt,name=rid,proto3" json:"rid,omitempty"`
 }
 

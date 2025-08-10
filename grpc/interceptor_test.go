@@ -3,66 +3,85 @@ package grpc
 import (
 	"basic-go/lmbook/pkg/grpcx/interceptor/trace"
 	"context"
-	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"net"
 	"testing"
 	"time"
+
+	"github.com/go-kratos/aegis/circuitbreaker/sre"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
+	"go.opentelemetry.io/otel"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type InterceptorTestSuite struct {
 	suite.Suite
 }
 
-func (s *InterceptorTestSuite) TestClient() {
-	t := s.T()
+func (s *InterceptorTestSuite) SetupSuite() {
 	initZipkin()
-	cc, err := grpc.Dial("localhost:8090",
-		grpc.WithChainUnaryInterceptor(trace.NewOTELInterceptorBuilder("client_test", nil, nil).
-			BuildUnaryClientInterceptor()),
-		grpc.WithTransportCredentials(insecure.NewCredentials()))
-	require.NoError(t, err)
-	client := NewUserServiceClient(cc)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	//md, ok := metadata.FromIncomingContext(ctx)
-	//if !ok {
-	//	md = metadata.New(make(map[string]string))
-	//}
-	//md.Set("app", "test_client")
-	time.Sleep(time.Millisecond * 100)
-	resp, err := client.GetByID(ctx, &GetByIDRequest{Id: 123})
-	require.NoError(t, err)
-	t.Log(resp.User)
-	time.Sleep(time.Second)
 }
 
 func (s *InterceptorTestSuite) TestServer() {
-	initZipkin()
 	t := s.T()
+	//tracer := otel.Tracer("interceptor-test")
+	//propagator := otel.GetTextMapPropagator()
 	server := grpc.NewServer(
-		grpc.ChainUnaryInterceptor(NewLogInterceptor(t),
-			trace.NewOTELInterceptorBuilder("server_test", nil, nil).
-				BuildUnaryServerInterceptor()))
-	RegisterUserServiceServer(server, &Server{
-		Name: "interceptor_test",
-	})
-
-	//RegisterUserServiceServer(server, &LimiterUserServer{
-	//	UserServiceServer: &Server{
-	//		Name: "interceptor_test",
-	//	},
-	//})
+		grpc.ChainUnaryInterceptor(
+			NewLogInterceptor(t),
+			trace.NewOTELInterceptorBuilder("user-service",
+				nil, nil).BuildUnaryServerInterceptor(),
+		))
+	// 这个是生成的代码
+	RegisterUserServiceServer(server, &Server{})
 	l, err := net.Listen("tcp", ":8090")
-	require.NoError(t, err)
-	server.Serve(l)
+	assert.NoError(t, err)
+	// 启动
+	if err = server.Serve(l); err != nil {
+		// 启动失败，或者退出了服务器
+		t.Log("退出 gRPC 服务", err)
+	}
+}
+
+func (s *InterceptorTestSuite) newCircuitBreakerInterceptor() grpc.UnaryServerInterceptor {
+	breaker := sre.NewBreaker()
+	builder := &CircuitBreakerInterceptorBuilder{
+		breaker,
+	}
+	return builder.BuildUnaryServerInterceptor()
+}
+
+func (s *InterceptorTestSuite) TestClient() {
+	t := s.T()
+	conn, err := grpc.Dial(":8090",
+		grpc.WithChainUnaryInterceptor(
+			trace.NewOTELInterceptorBuilder("user_service_test",
+				nil, nil).BuildUnaryClientInterceptor()),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
+	assert.NoError(t, err)
+	client := NewUserServiceClient(conn)
+	for i := 0; i < 10; i++ {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		spanCtx, span := otel.Tracer("interceptor_test").Start(ctx, "client_getbyid")
+		resp, err := client.GetById(spanCtx, &GetByIdReq{
+			Id: 123,
+		})
+		cancel()
+		// 模拟复杂的业务
+		time.Sleep(time.Millisecond * 100)
+		span.End()
+		assert.NoError(t, err)
+		t.Log(resp.User)
+	}
+	time.Sleep(time.Second * 3)
 }
 
 func NewLogInterceptor(t *testing.T) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req any,
-		info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
+	return func(ctx context.Context,
+		req any,
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler) (resp any, err error) {
 		t.Log("请求处理前", req, info)
 		resp, err = handler(ctx, req)
 		t.Log("请求处理后", resp, err)

@@ -1,69 +1,60 @@
 package websocket
 
 import (
-	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 func TestServer(t *testing.T) {
 	upgrader := websocket.Upgrader{}
-	// 我们假定，websocket 请求发到这里
 	http.HandleFunc("/ws", func(writer http.ResponseWriter, request *http.Request) {
-		// responseHeader 可以不传
+		// 没有额外的 header 的设置
 		conn, err := upgrader.Upgrade(writer, request, nil)
 		if err != nil {
 			writer.Write([]byte("初始化 websocket 失败"))
 			return
 		}
-		// 你要源源不断从 conn 这里读取数据
+
 		ws := &Ws{conn: conn}
 		go func() {
+			// 不断读取数据
 			ws.ReadCycle()
 		}()
-
 		go func() {
-			ticker := time.NewTicker(time.Second)
+			// 模拟输出数据
+			ticker := time.NewTicker(time.Second * 3)
 			for now := range ticker.C {
-				ws.Write("来自服务端的数据：" + now.String())
+				// 写回时间戳
+				ws.Write("响应：" + now.String())
 			}
 		}()
 	})
-
 	http.ListenAndServe(":8081", nil)
 }
 
+// Websocket 代表和客户端的 websocket 连接
 type Ws struct {
 	conn *websocket.Conn
 }
 
-func (w *Ws) Write(msg string) {
-	err := w.conn.WriteMessage(websocket.TextMessage, []byte(msg))
-	// 记录一下日志，可以考虑关闭连接
-	if err != nil {
-		log.Println(err)
+func (w *Ws) ReadCycle() {
+	for {
+		_, message, err := w.conn.ReadMessage()
+		if err != nil {
+			log.Println("接收 websocket 数据失败", err)
+			return
+		}
+		log.Println("收到数据", string(message))
 	}
 }
 
-func (w *Ws) ReadCycle() {
-	conn := w.conn
-	for {
-		typ, msg, err := conn.ReadMessage()
-		if err != nil {
-			// 正常这边都是代表出了问题，你可以退出循环
-			// 记录日志
-			return
-		}
-		switch typ {
-		case websocket.CloseMessage:
-			conn.Close()
-			return
-		case websocket.BinaryMessage, websocket.TextMessage:
-			log.Println(string(msg))
-		default:
-			// 不需要管
-		}
+func (w *Ws) Write(data string) {
+	err := w.conn.WriteMessage(websocket.TextMessage, []byte(data))
+	if err != nil {
+		panic(err)
 	}
 }

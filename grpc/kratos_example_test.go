@@ -2,6 +2,9 @@ package grpc
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	etcd "github.com/go-kratos/kratos/contrib/registry/etcd/v2"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
@@ -11,8 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	etcdv3 "go.etcd.io/etcd/client/v3"
-	"testing"
-	"time"
 )
 
 type KratosTestSuite struct {
@@ -34,16 +35,6 @@ func (s *KratosTestSuite) TestClient() {
 	cc, err := grpc.DialInsecure(context.Background(),
 		grpc.WithEndpoint("discovery:///user"),
 		grpc.WithDiscovery(r),
-		//grpc.WithNodeFilter(func(ctx context.Context, nodes []selector.Node) []selector.Node {
-		//	// 你可以在这里过滤一些东西
-		//	res := make([]selector.Node, 0, len(nodes))
-		//	for _, n := range nodes {
-		//		if n.Metadata()["vip"] == "true" {
-		//			res = append(res, n)
-		//		}
-		//	}
-		//	return res
-		//}),
 	)
 	require.NoError(s.T(), err)
 	defer cc.Close()
@@ -51,10 +42,10 @@ func (s *KratosTestSuite) TestClient() {
 	client := NewUserServiceClient(cc)
 	for i := 0; i < 10; i++ {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		resp, err := client.GetByID(ctx, &GetByIDRequest{
+		defer cancel()
+		resp, err := client.GetById(ctx, &GetByIdReq{
 			Id: 123,
 		})
-		cancel()
 		require.NoError(s.T(), err)
 		s.T().Log(resp.User)
 	}
@@ -73,10 +64,10 @@ func (s *KratosTestSuite) TestClientLoadBalancer() {
 	client := NewUserServiceClient(cc)
 	for i := 0; i < 10; i++ {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		resp, err := client.GetByID(ctx, &GetByIDRequest{
+		defer cancel()
+		resp, err := client.GetById(ctx, &GetByIdReq{
 			Id: 123,
 		})
-		cancel()
 		require.NoError(s.T(), err)
 		s.T().Log(resp.User)
 	}
@@ -96,7 +87,7 @@ func (s *KratosTestSuite) startServer(addr string) {
 		grpc.Middleware(recovery.Recovery()),
 	)
 	RegisterUserServiceServer(grpcSrv, &Server{
-		Name: addr,
+		name: addr,
 	})
 	// etcd 注册中心
 	r := etcd.New(s.etcdClient)
