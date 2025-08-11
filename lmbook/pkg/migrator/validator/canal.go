@@ -31,45 +31,37 @@ func NewCanalIncrValidator[T migrator.Entity](
 }
 
 // Validate 一次校验一条
-// id 是被修改的数据的主键
 func (v *CanalIncrValidator[T]) Validate(ctx context.Context, id int64) error {
 	var base T
-	err := v.base.WithContext(ctx).Where("id = ? ", id).First(&base).Error
+
+	err := v.base.WithContext(ctx).Where("id = ?").First(&base).Error
 	switch err {
-	case nil:
-		// 找到了
+	case gorm.ErrRecordNotFound:
 		var target T
-		err = v.target.WithContext(ctx).Where("id = ?", id).First(&target).Error
-		switch err {
-		case nil:
-			// 两边都找到了
-			if !base.CompareTo(target) {
-				v.notify(id, events2.InconsistentEventTypeNEQ)
-			}
-			return nil
+		err1 := v.target.WithContext(ctx).Where("id = ?").First(&target).Error
+		switch err1 {
 		case gorm.ErrRecordNotFound:
-			// base 有，target 没有
-			v.notify(id, events2.InconsistentEventTypeTargetMissing)
-			return nil
+			// 数据一致
+		case nil:
+			v.notify(id, events2.InconsistentEventTypeBaseMissing)
 		default:
 			return err
 		}
-	case gorm.ErrRecordNotFound:
-		// 没找到
+	case nil:
 		var target T
-		err = v.target.WithContext(ctx).Where("id = ?", id).First(&target).Error
-		switch err {
-		case nil:
-			// target 找到了, base 没有
-			v.notify(id, events2.InconsistentEventTypeBaseMissing)
-			return nil
+		err1 := v.target.WithContext(ctx).Where("id = ?").First(&target).Error
+		switch err1 {
 		case gorm.ErrRecordNotFound:
-			return nil
+			v.notify(id, events2.InconsistentEventTypeTargetMissing)
+		case nil:
+			if !base.CompareTo(target) {
+				v.notify(id, events2.InconsistentEventTypeNotEqual)
+			}
 		default:
 			return err
 		}
 	default:
-		//	不知道啥错误
 		return err
 	}
+	return nil
 }

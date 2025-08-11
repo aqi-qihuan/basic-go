@@ -1,7 +1,6 @@
 package connpool
 
 import (
-	"basic-go/lmbook/pkg/logger"
 	"github.com/ecodeclub/ekit/syncx/atomicx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,11 +17,11 @@ type DoubleWriteTestSuite struct {
 
 func (s *DoubleWriteTestSuite) SetupSuite() {
 	t := s.T()
-	src, err := gorm.Open(mysql.Open("root:root@tcp(localhost:13316)/lmbook"))
+	src, err := gorm.Open(mysql.Open("root:root@tcp(localhost:13316)/webook"))
 	require.NoError(t, err)
 	err = src.AutoMigrate(&Interactive{})
 	require.NoError(t, err)
-	dst, err := gorm.Open(mysql.Open("root:root@tcp(localhost:13316)/lmbook_intr"))
+	dst, err := gorm.Open(mysql.Open("root:root@tcp(localhost:13316)/webook_intr"))
 	require.NoError(t, err)
 	err = dst.AutoMigrate(&Interactive{})
 	require.NoError(t, err)
@@ -31,7 +30,6 @@ func (s *DoubleWriteTestSuite) SetupSuite() {
 			src:     src.ConnPool,
 			dst:     dst.ConnPool,
 			pattern: atomicx.NewValueOf(PatternSrcFirst),
-			l:       logger.NewNopLogger(),
 		},
 	}))
 	require.NoError(t, err)
@@ -39,7 +37,7 @@ func (s *DoubleWriteTestSuite) SetupSuite() {
 }
 
 func (s *DoubleWriteTestSuite) TearDownTest() {
-	//s.db.Exec("TRUNCATE TABLE interactives")
+	s.db.Exec("TRUNCATE TABLE interactives")
 }
 
 // 集成测试，需要启动数据库

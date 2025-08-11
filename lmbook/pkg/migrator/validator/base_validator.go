@@ -11,6 +11,7 @@ import (
 type baseValidator struct {
 	base   *gorm.DB
 	target *gorm.DB
+
 	// 这边需要告知，是以 SRC 为准，还是以 DST 为准
 	// 修复数据需要知道
 	direction string
@@ -33,7 +34,6 @@ func (v *baseValidator) notify(id int64, typ string) {
 	err := v.producer.ProduceInconsistentEvent(ctx, evt)
 	if err != nil {
 		v.l.Error("发送消息失败", logger.Error(err),
-			logger.Field{Key: "event", Val: evt})
+			logger.Field{Key: "event", Value: evt})
 	}
-
 }

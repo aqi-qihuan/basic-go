@@ -112,7 +112,7 @@ func (v *Validator[T]) dstDiff(ctx context.Context, src T) {
 		// 查询到了数据
 		equal := src.CompareTo(dst)
 		if !equal {
-			v.notify(src.ID(), events2.InconsistentEventTypeNEQ)
+			v.notify(src.ID(), events2.InconsistentEventTypeNotEqual)
 		}
 	default:
 		v.l.Error("src => dst 查询目标表失败", logger.Error(err))

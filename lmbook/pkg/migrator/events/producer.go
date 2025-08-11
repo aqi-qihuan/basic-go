@@ -6,8 +6,9 @@ import (
 	"github.com/IBM/sarama"
 )
 
+//go:generate mockgen -source=producer.go -package=evtmocks -destination=mocks/producer.mock.go Producer
 type Producer interface {
-	ProduceInconsistentEvent(ctx context.Context, evt InconsistentEvent) error
+	ProduceInconsistentEvent(ctx context.Context, event InconsistentEvent) error
 }
 
 type SaramaProducer struct {
@@ -15,18 +16,20 @@ type SaramaProducer struct {
 	topic string
 }
 
-func NewSaramaProducer(topic string, p sarama.SyncProducer) *SaramaProducer {
-	return &SaramaProducer{
-		topic: topic,
-		p:     p,
-	}
+func NewSaramaProducer(p sarama.SyncProducer,
+	topic string) *SaramaProducer {
+	return &SaramaProducer{p: p, topic: topic}
 }
 
-func (s *SaramaProducer) ProduceInconsistentEvent(ctx context.Context, evt InconsistentEvent) error {
-	val, _ := json.Marshal(evt)
-	_, _, err := s.p.SendMessage(&sarama.ProducerMessage{
+func (s *SaramaProducer) ProduceInconsistentEvent(ctx context.Context,
+	event InconsistentEvent) error {
+	data, err := json.Marshal(event)
+	if err != nil {
+		return err
+	}
+	_, _, err = s.p.SendMessage(&sarama.ProducerMessage{
 		Topic: s.topic,
-		Value: sarama.ByteEncoder(val),
+		Value: sarama.ByteEncoder(data),
 	})
 	return err
 }

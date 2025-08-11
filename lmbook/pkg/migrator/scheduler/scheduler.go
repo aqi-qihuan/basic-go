@@ -27,16 +27,12 @@ type Scheduler[T migrator.Entity] struct {
 	cancelFull func()
 	cancelIncr func()
 	producer   events.Producer
-
-	// 如果你要允许多个全量校验同时运行
-	fulls map[string]func()
 }
 
 func NewScheduler[T migrator.Entity](
 	l logger.LoggerV1,
 	src *gorm.DB,
 	dst *gorm.DB,
-	// 这个是业务用的 DoubleWritePool
 	pool *connpool.DoubleWritePool,
 	producer events.Producer) *Scheduler[T] {
 	return &Scheduler[T]{
@@ -55,8 +51,6 @@ func NewScheduler[T migrator.Entity](
 	}
 }
 
-// 这一个也不是必须的，就是你可以考虑利用配置中心，监听配置中心的变化
-// 把全量校验，增量校验做成分布式任务，利用分布式任务调度平台来调度
 func (s *Scheduler[T]) RegisterRoutes(server *gin.RouterGroup) {
 	// 将这个暴露为 HTTP 接口
 	// 你可以配上对应的 UI
@@ -67,7 +61,7 @@ func (s *Scheduler[T]) RegisterRoutes(server *gin.RouterGroup) {
 	server.POST("/full/start", ginx.Wrap(s.StartFullValidation))
 	server.POST("/full/stop", ginx.Wrap(s.StopFullValidation))
 	server.POST("/incr/stop", ginx.Wrap(s.StopIncrementValidation))
-	server.POST("/incr/start", ginx.WrapBody[StartIncrRequest](s.StartIncrementValidation))
+	server.POST("/incr/start", ginx.WrapReq[StartIncrRequest](s.StartIncrementValidation))
 }
 
 // ---- 下面是四个阶段 ---- //
@@ -77,7 +71,7 @@ func (s *Scheduler[T]) SrcOnly(c *gin.Context) (ginx.Result, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	s.pattern = connpool.PatternSrcOnly
-	s.pool.UpdatePattern(connpool.PatternSrcOnly)
+	s.pool.ChangePattern(connpool.PatternSrcOnly)
 	return ginx.Result{
 		Msg: "OK",
 	}, nil
@@ -87,7 +81,7 @@ func (s *Scheduler[T]) SrcFirst(c *gin.Context) (ginx.Result, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	s.pattern = connpool.PatternSrcFirst
-	s.pool.UpdatePattern(connpool.PatternSrcFirst)
+	s.pool.ChangePattern(connpool.PatternSrcFirst)
 	return ginx.Result{
 		Msg: "OK",
 	}, nil
@@ -97,7 +91,7 @@ func (s *Scheduler[T]) DstFirst(c *gin.Context) (ginx.Result, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	s.pattern = connpool.PatternDstFirst
-	s.pool.UpdatePattern(connpool.PatternDstFirst)
+	s.pool.ChangePattern(connpool.PatternDstFirst)
 	return ginx.Result{
 		Msg: "OK",
 	}, nil
@@ -107,7 +101,7 @@ func (s *Scheduler[T]) DstOnly(c *gin.Context) (ginx.Result, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	s.pattern = connpool.PatternDstOnly
-	s.pool.UpdatePattern(connpool.PatternDstOnly)
+	s.pool.ChangePattern(connpool.PatternDstOnly)
 	return ginx.Result{
 		Msg: "OK",
 	}, nil
@@ -136,12 +130,11 @@ func (s *Scheduler[T]) StartIncrementValidation(c *gin.Context,
 			Msg:  "系统异常",
 		}, nil
 	}
-	v.Incr().Utime(req.Utime).
-		SleepInterval(time.Duration(req.Interval) * time.Millisecond)
+	v.SleepInterval(time.Duration(req.Interval) * time.Millisecond).Utime(req.Utime)
+	var ctx context.Context
+	ctx, s.cancelIncr = context.WithCancel(context.Background())
 
 	go func() {
-		var ctx context.Context
-		ctx, s.cancelIncr = context.WithCancel(context.Background())
 		cancel()
 		err := v.Validate(ctx)
 		s.l.Warn("退出增量校验", logger.Error(err))
@@ -162,7 +155,6 @@ func (s *Scheduler[T]) StopFullValidation(c *gin.Context) (ginx.Result, error) {
 
 // StartFullValidation 全量校验
 func (s *Scheduler[T]) StartFullValidation(c *gin.Context) (ginx.Result, error) {
-	// 可以考虑去重的问题
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	// 取消上一次的
@@ -189,7 +181,7 @@ func (s *Scheduler[T]) StartFullValidation(c *gin.Context) (ginx.Result, error) 
 
 func (s *Scheduler[T]) newValidator() (*validator.Validator[T], error) {
 	switch s.pattern {
-	case connpool.PatternSrcOnly, connpool.PatternSrcFirst:
+	case connpool.PatternSrcFirst, connpool.PatternSrcOnly:
 		return validator.NewValidator[T](s.src, s.dst, "SRC", s.l, s.producer), nil
 	case connpool.PatternDstFirst, connpool.PatternDstOnly:
 		return validator.NewValidator[T](s.dst, s.src, "DST", s.l, s.producer), nil

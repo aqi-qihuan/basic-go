@@ -2,11 +2,10 @@ package ginx
 
 import (
 	"basic-go/lmbook/pkg/logger"
-	"net/http"
-	"strconv"
-
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
+	"net/http"
+	"strconv"
 )
 
 // 受制于泛型，我们这里只能使用包变量，我深恶痛绝的包变量

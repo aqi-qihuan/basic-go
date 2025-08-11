@@ -1,21 +1,35 @@
-package redisx
+package metrics
 
 import (
 	"context"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/redis/go-redis/v9"
 	"net"
 	"strconv"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/redis/go-redis/v9"
 )
 
 type PrometheusHook struct {
 	vector *prometheus.SummaryVec
 }
 
-func NewPrometheusHook(opt prometheus.SummaryOpts) *PrometheusHook {
+func NewPrometheusHook(
+	namespace string,
+	subsystem string,
+	instanceId string,
+	name string,
+) *PrometheusHook {
+	vector := prometheus.NewSummaryVec(prometheus.SummaryOpts{
+		Namespace: namespace,
+		Subsystem: subsystem,
+		Name:      name,
+		ConstLabels: map[string]string{
+			"instance_id": instanceId,
+		},
+	}, []string{"cmd", "key_exist"})
 	return &PrometheusHook{
-		vector: prometheus.NewSummaryVec(opt, []string{"cmd", "key_exist"}),
+		vector: vector,
 	}
 }
 
@@ -30,10 +44,12 @@ func (p *PrometheusHook) ProcessHook(next redis.ProcessHook) redis.ProcessHook {
 		start := time.Now()
 		var err error
 		defer func() {
-			duration := time.Since(start).Milliseconds()
-			keyExists := err == redis.Nil
-			p.vector.WithLabelValues(cmd.Name(), strconv.FormatBool(keyExists)).
-				Observe(float64(duration))
+			duration := time.Since(start)
+			keyExist := err == redis.Nil
+			// 集群下可以考虑使用 FullName
+			p.vector.WithLabelValues(cmd.Name(),
+				strconv.FormatBool(keyExist)).
+				Observe(float64(duration.Milliseconds()))
 		}()
 		err = next(ctx, cmd)
 		return err
