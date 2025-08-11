@@ -2,11 +2,13 @@
 
 package config
 
-var Config = config{
+var Config = WebookConfig{
 	DB: DBConfig{
 		DSN: "root:root@tcp(localhost:13316)/lmbook",
 	},
 	Redis: RedisConfig{
-		Addr: "localhost:6379",
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
 	},
 }

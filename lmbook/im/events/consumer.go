@@ -7,9 +7,10 @@ import (
 	"basic-go/lmbook/pkg/logger"
 	"basic-go/lmbook/pkg/saramax"
 	"context"
-	"github.com/IBM/sarama"
 	"strconv"
 	"time"
+
+	"github.com/IBM/sarama"
 )
 
 type MySQLBinlogConsumer struct {
@@ -19,7 +20,7 @@ type MySQLBinlogConsumer struct {
 }
 
 func (r *MySQLBinlogConsumer) Start() error {
-	cg, err := sarama.NewConsumerGroupFromClient("openim_sync",
+	cg, err := sarama.NewConsumerGroupFromClient("pub_articles_cache",
 		r.client)
 	if err != nil {
 		return err
@@ -37,20 +38,20 @@ func (r *MySQLBinlogConsumer) Start() error {
 
 func (r *MySQLBinlogConsumer) Consume(msg *sarama.ConsumerMessage,
 	val canalx.Message[User]) error {
-	if val.Table != "users" || val.Type != "INSERT" {
-		// 我不需要处理
+	// 因为共用了一个 topic，所以会有很多表的数据，不是自己的就不用管了
+	// 只处理用户表的
+	if val.Table != "users" {
 		return nil
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	for _, data := range val.Data {
-		// 我这里怎么办？
 		err := r.svc.Sync(ctx, domain.User{
-			UserID:   strconv.FormatInt(data.Id, 10),
 			Nickname: data.Nickname,
+			UserID:   strconv.FormatInt(data.Id, 10),
 		})
 		if err != nil {
-			// 记录日志
+			// 记录日志。
 			continue
 		}
 	}
@@ -58,18 +59,18 @@ func (r *MySQLBinlogConsumer) Consume(msg *sarama.ConsumerMessage,
 }
 
 type User struct {
-	Id       int64  `json:"id"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Id            int64
+	Email         string
+	Password      string
+	Phone         string
+	Birthday      string
+	Nickname      string
+	AboutMe       string
+	WechatOpenId  string
+	WechatUnionId string
 
-	Nickname string `json:"nickname"`
-	Birthday int64  `json:"birthday"`
-	AboutMe  string `json:"about_me"`
-	Phone    string `json:"phone"`
-
-	WechatOpenId  string `json:"wechat_open_id"`
-	WechatUnionId string `json:"wechat_union_id"`
-
-	Ctime int64 `json:"ctime"`
-	Utime int64 `json:"utime"`
+	// 创建时间
+	Ctime int64
+	// 更新时间
+	Utime int64
 }

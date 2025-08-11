@@ -13,6 +13,8 @@
     "@types/node": "20.4.2",
     "@types/react": "18.2.15",
     "@types/react-dom": "18.2.7",
+    "@wangeditor/basic-modules": "^1.1.7",
+    "@wangeditor/editor-for-react": "^1.0.6",
     "antd": "^5.7.0",
     "autoprefixer": "10.4.14",
     "axios": "^1.4.0",

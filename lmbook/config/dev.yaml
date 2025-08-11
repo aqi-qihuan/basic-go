@@ -1,20 +1,21 @@
-test:
-  key: value1234
+db:
+  dsn: "root:root@tcp(localhost:13316)/lmbook"
 
 redis:
   addr: "localhost:6379"
 
-db:
-  dsn: "root:root@tcp(localhost:13316)/lmbook"
 kafka:
-  addr:
-    - "localhost:9094"
-
-etcd:
   addrs:
-    - "localhost:12379"
+    - "localhost:9094"
 
 grpc:
   client:
     intr:
-      addr: "etcd:///service/interactive"
+      #      addr: "localhost:8090"
+      name: "interactive"
+      secure: false
+      etcdAddr: "localhost:12379"
+#      全部都走grpc调用
+#      threshold: 100
+
+test: "hello,babc"
