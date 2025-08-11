@@ -207,9 +207,14 @@ func Test_articleService_Publish(t *testing.T) {
 			defer ctrl.Finish()
 			authorRepo, readerRepo := tc.mock(ctrl)
 			svc := NewArticleServiceV1(readerRepo, authorRepo,
-				logger.NewNopLogger())
+				logger.NewNoOpLogger())
 			id, err := svc.PublishV1(context.Background(), tc.art)
-			assert.Equal(t, tc.wantErr, err)
+			// 使用ErrorIs来比较错误，而不是直接比较error对象
+			if tc.wantErr != nil {
+				assert.ErrorIs(t, err, tc.wantErr)
+			} else {
+				assert.NoError(t, err)
+			}
 			assert.Equal(t, tc.wantId, id)
 		})
 	}
