@@ -20,41 +20,6 @@ type WechatNativeRewardService struct {
 	acli   accountv1.AccountServiceClient
 }
 
-func (s *WechatNativeRewardService) PreReward(ctx context.Context, r domain.Reward) (domain.CodeURL, error) {
-	// 缓存，可选的步骤
-	res, err := s.repo.GetCachedCodeURL(ctx, r)
-	if err == nil {
-		return res, nil
-	}
-	r.Status = domain.RewardStatusInit
-	rid, err := s.repo.CreateReward(ctx, r)
-	if err != nil {
-		return domain.CodeURL{}, err
-	}
-	pmtResp, err := s.client.NativePrePay(ctx, &pmtv1.PrePayRequest{
-		Amt: &pmtv1.Amount{
-			Total:    r.Amt,
-			Currency: "CNY",
-		},
-		BizTradeNo:  fmt.Sprintf("reward-%d", rid),
-		Description: fmt.Sprintf("打赏-%s", r.Target.BizName),
-	})
-	if err != nil {
-		return domain.CodeURL{}, err
-	}
-	cu := domain.CodeURL{
-		Rid: rid,
-		URL: pmtResp.CodeUrl,
-	}
-	err1 := s.repo.CachedCodeURL(ctx, cu, r)
-	if err1 != nil {
-		s.l.Error("缓存二维码失败",
-			logger.Error(err1),
-			logger.Int64("rid", rid))
-	}
-	return cu, nil
-}
-
 func (s *WechatNativeRewardService) UpdateReward(ctx context.Context,
 	bizTradeNO string, status domain.RewardStatus) error {
 	rid := s.toRid(bizTradeNO)
@@ -143,6 +108,41 @@ func (s *WechatNativeRewardService) GetReward(ctx context.Context, rid, uid int6
 		}
 	}
 	return res, nil
+}
+
+func (s *WechatNativeRewardService) PreReward(ctx context.Context, r domain.Reward) (domain.CodeURL, error) {
+	// 缓存，可选的步骤
+	res, err := s.repo.GetCachedCodeURL(ctx, r)
+	if err == nil {
+		return res, nil
+	}
+	r.Status = domain.RewardStatusInit
+	rid, err := s.repo.CreateReward(ctx, r)
+	if err != nil {
+		return domain.CodeURL{}, err
+	}
+	pmtResp, err := s.client.NativePrePay(ctx, &pmtv1.PrePayRequest{
+		Amt: &pmtv1.Amount{
+			Total:    r.Amt,
+			Currency: "CNY",
+		},
+		BizTradeNo:  fmt.Sprintf("reward-%d", rid),
+		Description: fmt.Sprintf("打赏-%s", r.Target.BizName),
+	})
+	if err != nil {
+		return domain.CodeURL{}, err
+	}
+	cu := domain.CodeURL{
+		Rid: rid,
+		URL: pmtResp.CodeUrl,
+	}
+	err1 := s.repo.CachedCodeURL(ctx, cu, r)
+	if err1 != nil {
+		s.l.Error("缓存二维码失败",
+			logger.Error(err1),
+			logger.Int64("rid", rid))
+	}
+	return cu, nil
 }
 
 func (s *WechatNativeRewardService) bizTradeNO(rid int64) string {
