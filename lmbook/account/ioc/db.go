@@ -1,8 +1,9 @@
 package ioc
 
 import (
-	"basic-go/lmbook/internal/repository/dao"
+	"basic-go/lmbook/account/repository/dao"
 	"fmt"
+
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
