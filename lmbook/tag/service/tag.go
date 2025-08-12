@@ -23,31 +23,33 @@ type tagService struct {
 	producer events.Producer
 }
 
-func (svc *tagService) AttachTags(ctx context.Context, uid int64, biz string, bizId int64, tagIds []int64) error {
-	err := svc.repo.BindTagToBiz(ctx, uid, biz, bizId, tagIds)
+func (svc *tagService) AttachTags(ctx context.Context, uid int64, biz string, bizId int64, tags []int64) error {
+	err := svc.repo.BindTagToBiz(ctx, uid, biz, bizId, tags)
 	if err != nil {
 		return err
 	}
 	// 异步发送
 	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		tags, err := svc.repo.GetTagsById(ctx, tagIds)
-		cancel()
+		ts, err := svc.repo.GetTagsById(ctx, tags)
 		if err != nil {
-			return
+			// 记录日志
 		}
-		ctx, cancel = context.WithTimeout(context.Background(), time.Second)
-		err = svc.producer.ProduceSyncEvent(ctx, events.BizTags{
+		// 这里要根据 tag_index 的结构来定义
+		// 同样要注意顺序，即同一个用户对同一个资源打标签的顺序，
+		// 是不能乱的
+		pctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		err = svc.producer.ProduceSyncEvent(pctx, events.BizTags{
+			Uid:   uid,
 			Biz:   biz,
 			BizId: bizId,
-			Uid:   uid,
-			Tags: slice.Map(tags, func(idx int, src domain.Tag) string {
+			Tags: slice.Map(ts, func(idx int, src domain.Tag) string {
 				return src.Name
 			}),
 		})
 		cancel()
 		if err != nil {
-			// 记录一下日志
+			// 记录日志
+			svc.logger.Error("发送标签搜索事件失败", logger.Error(err))
 		}
 	}()
 	return err

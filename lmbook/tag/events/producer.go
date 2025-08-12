@@ -17,29 +17,23 @@ type SaramaSyncProducer struct {
 }
 
 func (p *SaramaSyncProducer) ProduceSyncEvent(ctx context.Context, tags BizTags) error {
-	val, err := json.Marshal(tags)
-	if err != nil {
-		return err
-	}
+	data, _ := json.Marshal(tags)
 	evt := SyncDataEvent{
 		IndexName: "tags_index",
 		DocID:     fmt.Sprintf("%d_%s_%d", tags.Uid, tags.Biz, tags.BizId),
-		Data:      string(val),
+		Data:      string(data),
 	}
-	val, err = json.Marshal(evt)
-	if err != nil {
-		return err
-	}
-	_, _, err = p.client.SendMessage(&sarama.ProducerMessage{
-		Topic: "sync_search_data",
-		Value: sarama.ByteEncoder(val),
+	data, _ = json.Marshal(evt)
+	_, _, err := p.client.SendMessage(&sarama.ProducerMessage{
+		Topic: "search_sync_data",
+		Value: sarama.ByteEncoder(data),
 	})
 	return err
 }
 
 type BizTags struct {
-	Tags  []string `json:"tags"`
+	Uid   int64    `json:"uid"`
 	Biz   string   `json:"biz"`
 	BizId int64    `json:"biz_id"`
-	Uid   int64    `json:"uid"`
+	Tags  []string `json:"tags"`
 }
