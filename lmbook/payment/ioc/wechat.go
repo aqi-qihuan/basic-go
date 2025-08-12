@@ -1,6 +1,7 @@
 package ioc
 
 import (
+	"basic-go/lmbook/payment/events"
 	"basic-go/lmbook/payment/repository"
 	"basic-go/lmbook/payment/service/wechat"
 	"basic-go/lmbook/pkg/logger"
@@ -16,6 +17,7 @@ import (
 )
 
 func InitWechatClient(cfg WechatConfig) *core.Client {
+
 	// 使用 utils 提供的函数从本地文件中加载商户私钥，商户私钥会用来生成请求的签名
 	mchPrivateKey, err := utils.LoadPrivateKeyWithPath(
 		// 注意这个文件我没有上传，所以你需要准备一个
@@ -43,10 +45,11 @@ func InitWechatNativeService(
 	cli *core.Client,
 	repo repository.PaymentRepository,
 	l logger.LoggerV1,
+	producer events.Producer,
 	cfg WechatConfig) *wechat.NativePaymentService {
-	return wechat.NewNativePaymentService(cfg.AppID, cfg.MchID, repo, &native.NativeApiService{
+	return wechat.NewNativePaymentService(&native.NativeApiService{
 		Client: cli,
-	}, l)
+	}, repo, producer, l, cfg.AppID, cfg.MchID)
 }
 
 func InitWechatNotifyHandler(cfg WechatConfig) *notify.Handler {

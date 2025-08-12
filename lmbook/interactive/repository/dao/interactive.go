@@ -8,17 +8,16 @@ import (
 	"time"
 )
 
+//go:generate mockgen -source=./interactive.go -package=daomocks -destination=mocks/interactive.mock.go InteractiveDAO
 type InteractiveDAO interface {
 	IncrReadCnt(ctx context.Context, biz string, bizId int64) error
-	BatchIncrReadCnt(ctx context.Context, bizs []string, bizIds []int64) error
-	InsertLikeInfo(ctx context.Context, biz string, id int64, uid int64) error
-	DeleteLikeInfo(ctx context.Context, biz string, id int64, uid int64) error
+	InsertLikeInfo(ctx context.Context, biz string, bizId, uid int64) error
+	GetLikeInfo(ctx context.Context, biz string, bizId, uid int64) (UserLikeBiz, error)
+	DeleteLikeInfo(ctx context.Context, biz string, bizId, uid int64) error
+	Get(ctx context.Context, biz string, bizId int64) (Interactive, error)
 	InsertCollectionBiz(ctx context.Context, cb UserCollectionBiz) error
-	GetLikeInfo(ctx context.Context,
-		biz string, id int64, uid int64) (UserLikeBiz, error)
-	GetCollectInfo(ctx context.Context,
-		biz string, id int64, uid int64) (UserCollectionBiz, error)
-	Get(ctx context.Context, biz string, id int64) (Interactive, error)
+	GetCollectionInfo(ctx context.Context, biz string, bizId, uid int64) (UserCollectionBiz, error)
+	BatchIncrReadCnt(ctx context.Context, bizs []string, ids []int64) error
 	GetByIds(ctx context.Context, biz string, ids []int64) ([]Interactive, error)
 }
 
@@ -28,130 +27,145 @@ type GORMInteractiveDAO struct {
 
 func (dao *GORMInteractiveDAO) GetByIds(ctx context.Context, biz string, ids []int64) ([]Interactive, error) {
 	var res []Interactive
-	err := dao.db.WithContext(ctx).
-		Where("biz = ? AND biz_id IN ?", biz, ids).
-		Find(&res).Error
+	err := dao.db.WithContext(ctx).Where("biz = ? AND id IN ?", biz, ids).Find(&res).Error
 	return res, err
 }
 
-func (dao *GORMInteractiveDAO) Get(ctx context.Context, biz string, id int64) (Interactive, error) {
-	var res Interactive
-	err := dao.db.WithContext(ctx).
-		Where("biz = ? AND biz_id = ?", biz, id).
-		First(&res).Error
-	return res, err
-}
-
-func (dao *GORMInteractiveDAO) GetLikeInfo(ctx context.Context,
-	biz string, id int64, uid int64) (UserLikeBiz, error) {
+func (dao *GORMInteractiveDAO) GetLikeInfo(ctx context.Context, biz string, bizId, uid int64) (UserLikeBiz, error) {
 	var res UserLikeBiz
 	err := dao.db.WithContext(ctx).
-		Where("biz = ? AND biz_id = ? AND uid = ? AND status = ?",
-			biz, id, uid, 1).
-		First(&res).Error
+		Where("biz=? AND biz_id = ? AND uid = ? AND status = ?",
+			biz, bizId, uid, 1).First(&res).Error
 	return res, err
 }
 
-func (dao *GORMInteractiveDAO) GetCollectInfo(ctx context.Context,
-	biz string, id int64, uid int64) (UserCollectionBiz, error) {
+func (dao *GORMInteractiveDAO) GetCollectionInfo(ctx context.Context, biz string, bizId, uid int64) (UserCollectionBiz, error) {
 	var res UserCollectionBiz
 	err := dao.db.WithContext(ctx).
-		Where("biz = ? AND biz_id = ? AND uid = ?", biz, id, uid).
-		First(&res).Error
+		Where("biz=? AND biz_id = ? AND uid = ?", biz, bizId, uid).First(&res).Error
 	return res, err
 }
 
-func (dao *GORMInteractiveDAO) InsertCollectionBiz(ctx context.Context,
-	cb UserCollectionBiz) error {
+// InsertCollectionBiz 插入收藏记录，并且更新计数
+func (dao *GORMInteractiveDAO) InsertCollectionBiz(ctx context.Context, cb UserCollectionBiz) error {
 	now := time.Now().UnixMilli()
-	cb.Ctime = now
 	cb.Utime = now
+	cb.Ctime = now
 	return dao.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		err := tx.Create(&cb).Error
+		err := dao.db.WithContext(ctx).Create(&cb).Error
 		if err != nil {
 			return err
 		}
-		return tx.WithContext(ctx).Clauses(clause.OnConflict{
-			DoUpdates: clause.Assignments(map[string]interface{}{
-				"collect_cnt": gorm.Expr("`collect_cnt` + 1"),
+		return tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.Assignments(map[string]any{
+				"collect_cnt": gorm.Expr("`collect_cnt`+1"),
 				"utime":       now,
 			}),
 		}).Create(&Interactive{
-			Biz:        cb.Biz,
-			BizId:      cb.BizId,
 			CollectCnt: 1,
 			Ctime:      now,
 			Utime:      now,
+			Biz:        cb.Biz,
+			BizId:      cb.BizId,
 		}).Error
 	})
 }
 
-func (dao *GORMInteractiveDAO) InsertLikeInfo(ctx context.Context,
-	biz string, id int64, uid int64) error {
+func (dao *GORMInteractiveDAO) InsertLikeInfo(ctx context.Context, biz string, bizId, uid int64) error {
 	now := time.Now().UnixMilli()
-	return dao.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	err := dao.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.Assignments(map[string]interface{}{
-				"utime":  now,
+			DoUpdates: clause.Assignments(map[string]any{
 				"status": 1,
+				"utime":  now,
 			}),
 		}).Create(&UserLikeBiz{
 			Uid:    uid,
-			Biz:    biz,
-			BizId:  id,
-			Status: 1,
-			Utime:  now,
 			Ctime:  now,
+			Utime:  now,
+			Biz:    biz,
+			BizId:  bizId,
+			Status: 1,
 		}).Error
 		if err != nil {
 			return err
 		}
-		return tx.WithContext(ctx).Clauses(clause.OnConflict{
-			DoUpdates: clause.Assignments(map[string]interface{}{
-				"like_cnt": gorm.Expr("`like_cnt` + 1"),
+		return tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.Assignments(map[string]any{
+				"like_cnt": gorm.Expr("`like_cnt`+1"),
 				"utime":    now,
 			}),
 		}).Create(&Interactive{
-			Biz:     biz,
-			BizId:   id,
 			LikeCnt: 1,
 			Ctime:   now,
 			Utime:   now,
+			Biz:     biz,
+			BizId:   bizId,
 		}).Error
 	})
+	return err
 }
 
-func (dao *GORMInteractiveDAO) DeleteLikeInfo(ctx context.Context,
-	biz string, id int64, uid int64) error {
+func (dao *GORMInteractiveDAO) DeleteLikeInfo(ctx context.Context, biz string, bizId, uid int64) error {
 	now := time.Now().UnixMilli()
-	return dao.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	err := dao.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		err := tx.Model(&UserLikeBiz{}).
-			Where("uid=? AND biz_id = ? AND biz=?", uid, id, biz).
-			Updates(map[string]interface{}{
-				"utime":  now,
+			Where("biz =? AND biz_id = ? AND uid = ?", biz, bizId, uid).
+			Updates(map[string]any{
 				"status": 0,
+				"utime":  now,
 			}).Error
 		if err != nil {
 			return err
 		}
-		return tx.Model(&Interactive{}).
-			Where("biz =? AND biz_id=?", biz, id).
-			Updates(map[string]interface{}{
-				"like_cnt": gorm.Expr("`like_cnt` - 1"),
+		return dao.db.WithContext(ctx).Clauses(clause.OnConflict{
+			DoUpdates: clause.Assignments(map[string]any{
+				"like_cnt": gorm.Expr("`like_cnt`-1"),
 				"utime":    now,
-			}).Error
+			}),
+		}).Create(&Interactive{
+			LikeCnt: 1,
+			Ctime:   now,
+			Utime:   now,
+			Biz:     biz,
+			BizId:   bizId,
+		}).Error
 	})
+	return err
 }
 
 func NewGORMInteractiveDAO(db *gorm.DB) InteractiveDAO {
-	return &GORMInteractiveDAO{db: db}
+	return &GORMInteractiveDAO{
+		db: db,
+	}
 }
 
-func (dao *GORMInteractiveDAO) BatchIncrReadCnt(ctx context.Context, bizs []string, bizIds []int64) error {
+// IncrReadCnt 是一个插入或者更新语义
+func (dao *GORMInteractiveDAO) IncrReadCnt(ctx context.Context, biz string, bizId int64) error {
+	return dao.incrReadCnt(dao.db.WithContext(ctx), biz, bizId)
+}
+
+func (dao *GORMInteractiveDAO) incrReadCnt(tx *gorm.DB, biz string, bizId int64) error {
+	now := time.Now().UnixMilli()
+	return tx.Clauses(clause.OnConflict{
+		DoUpdates: clause.Assignments(map[string]any{
+			"read_cnt": gorm.Expr("`read_cnt`+1"),
+			"utime":    now,
+		}),
+	}).Create(&Interactive{
+		ReadCnt: 1,
+		Ctime:   now,
+		Utime:   now,
+		Biz:     biz,
+		BizId:   bizId,
+	}).Error
+}
+
+func (dao *GORMInteractiveDAO) BatchIncrReadCnt(ctx context.Context, bizs []string, ids []int64) error {
 	return dao.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		txDAO := NewGORMInteractiveDAO(tx)
+		// 让调用者保证两者是相等的
 		for i := 0; i < len(bizs); i++ {
-			err := txDAO.IncrReadCnt(ctx, bizs[i], bizIds[i])
+			err := dao.incrReadCnt(tx, bizs[i], ids[i])
 			if err != nil {
 				return err
 			}
@@ -160,57 +174,26 @@ func (dao *GORMInteractiveDAO) BatchIncrReadCnt(ctx context.Context, bizs []stri
 	})
 }
 
-func (dao *GORMInteractiveDAO) IncrReadCnt(ctx context.Context, biz string, bizId int64) error {
-	now := time.Now().UnixMilli()
-	return dao.db.WithContext(ctx).Clauses(clause.OnConflict{
-		DoUpdates: clause.Assignments(map[string]interface{}{
-			"read_cnt": gorm.Expr("`read_cnt` + 1"),
-			"utime":    now,
-		}),
-	}).Create(&Interactive{
-		Biz:     biz,
-		BizId:   bizId,
-		ReadCnt: 1,
-		Ctime:   now,
-		Utime:   now,
-	}).Error
+func (dao *GORMInteractiveDAO) Get(ctx context.Context, biz string, bizId int64) (Interactive, error) {
+	var res Interactive
+	err := dao.db.WithContext(ctx).
+		Where("biz = ? AND biz_id = ?", biz, bizId).
+		First(&res).Error
+	return res, err
 }
 
-type UserLikeBiz struct {
-	Id     int64  `gorm:"primaryKey,autoIncrement"`
-	Uid    int64  `gorm:"uniqueIndex:uid_biz_type_id"`
-	BizId  int64  `gorm:"uniqueIndex:uid_biz_type_id"`
-	Biz    string `gorm:"type:varchar(128);uniqueIndex:uid_biz_type_id"`
-	Status int
-	Utime  int64
-	Ctime  int64
-}
-
-type UserCollectionBiz struct {
-	Id int64 `gorm:"primaryKey,autoIncrement"`
-	// 这边还是保留了了唯一索引
-	Uid   int64  `gorm:"uniqueIndex:uid_biz_type_id"`
-	BizId int64  `gorm:"uniqueIndex:uid_biz_type_id"`
-	Biz   string `gorm:"type:varchar(128);uniqueIndex:uid_biz_type_id"`
-	// 收藏夹的ID
-	// 收藏夹ID本身有索引
-	Cid   int64 `gorm:"index"`
-	Utime int64
-	Ctime int64
-}
+// 正常来说，一张主表和与它有关联关系的表会共用一个DAO，
+// 所以我们就用一个 DAO 来操作
 
 type Interactive struct {
-	Id int64 `gorm:"primaryKey,autoIncrement"`
-	// <bizid, biz>
-	BizId int64 `gorm:"uniqueIndex:biz_type_id"`
-	// WHERE biz = ?
-	Biz string `gorm:"type:varchar(128);uniqueIndex:biz_type_id"`
-
+	Id         int64  `gorm:"primaryKey,autoIncrement"`
+	BizId      int64  `gorm:"uniqueIndex:biz_type_id"`
+	Biz        string `gorm:"type:varchar(128);uniqueIndex:biz_type_id"`
 	ReadCnt    int64
-	LikeCnt    int64
 	CollectCnt int64
-	Utime      int64
+	LikeCnt    int64
 	Ctime      int64
+	Utime      int64
 }
 
 func (i Interactive) ID() int64 {
@@ -218,9 +201,47 @@ func (i Interactive) ID() int64 {
 }
 
 func (i Interactive) CompareTo(dst migrator.Entity) bool {
-	val, ok := dst.(Interactive)
-	if !ok {
-		return false
+	if di, ok := dst.(Interactive); ok {
+		return di == i
 	}
-	return i == val
+	return false
+}
+
+// UserLikeBiz 命名无能，用户点赞的某个东西
+type UserLikeBiz struct {
+	Id int64 `gorm:"primaryKey,autoIncrement"`
+	// 三个构成唯一索引
+	BizId int64  `gorm:"uniqueIndex:biz_type_id_uid"`
+	Biz   string `gorm:"type:varchar(128);uniqueIndex:biz_type_id_uid"`
+	Uid   int64  `gorm:"uniqueIndex:biz_type_id_uid"`
+	// 依旧是只在 DB 层面生效的状态
+	// 1- 有效，0-无效。软删除的用法
+	Status uint8
+	Ctime  int64
+	Utime  int64
+}
+
+// Collection 收藏夹
+type Collection struct {
+	Id   int64  `gorm:"primaryKey,autoIncrement"`
+	Name string `gorm:"type=varchar(1024)"`
+	Uid  int64  `gorm:""`
+
+	Ctime int64
+	Utime int64
+}
+
+// UserCollectionBiz 收藏的东西
+type UserCollectionBiz struct {
+	Id int64 `gorm:"primaryKey,autoIncrement"`
+	// 收藏夹 ID
+	// 作为关联关系中的外键，我们这里需要索引
+	Cid   int64  `gorm:"index"`
+	BizId int64  `gorm:"uniqueIndex:biz_type_id_uid"`
+	Biz   string `gorm:"type:varchar(128);uniqueIndex:biz_type_id_uid"`
+	// 这算是一个冗余，因为正常来说，
+	// 只需要在 Collection 中维持住 Uid 就可以
+	Uid   int64 `gorm:"uniqueIndex:biz_type_id_uid"`
+	Ctime int64
+	Utime int64
 }

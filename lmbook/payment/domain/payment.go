@@ -16,8 +16,9 @@ type Payment struct {
 	BizTradeNO string
 	// 订单本身的描述
 	Description string
-
-	Status PaymentStatus
+	Biz         string
+	BizID       int64
+	Status      PaymentStatus
 	// 第三方那边返回的 ID
 	TxnID string
 }

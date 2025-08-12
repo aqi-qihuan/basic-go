@@ -8,26 +8,23 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/native"
-	"time"
 )
 
 var errUnknownTransactionState = errors.New("未知的微信事务状态")
 
 type NativePaymentService struct {
-	appID string
-	mchID string
-	// 支付通知回调 URL
+	svc       *native.NativeApiService
+	appID     string
+	mchID     string
 	notifyURL string
-	// 自己的支付记录
-	repo repository.PaymentRepository
-
-	svc      *native.NativeApiService
-	producer events.Producer
-
-	l logger.LoggerV1
+	repo      repository.PaymentRepository
+	l         logger.LoggerV1
+	producer  events.Producer
 
 	// 在微信 native 里面，分别是
 	// SUCCESS：支付成功
@@ -40,11 +37,19 @@ type NativePaymentService struct {
 	nativeCBTypeToStatus map[string]domain.PaymentStatus
 }
 
-func NewNativePaymentService(appID string, mchID string,
-	repo repository.PaymentRepository, svc *native.NativeApiService,
-	l logger.LoggerV1) *NativePaymentService {
-	return &NativePaymentService{appID: appID, mchID: mchID, notifyURL: "http://wechat.meoying.com/pay/callback",
-		repo: repo, svc: svc, l: l,
+func NewNativePaymentService(svc *native.NativeApiService,
+	repo repository.PaymentRepository,
+	producer events.Producer,
+	l logger.LoggerV1,
+	appid, mchid string) *NativePaymentService {
+	return &NativePaymentService{
+		l:     l,
+		repo:  repo,
+		svc:   svc,
+		appID: appid,
+		mchID: mchid,
+		// 一般来说，这个都是固定的，基本不会变的
+		notifyURL: "http://wechat.meoying.com/pay/callback",
 		nativeCBTypeToStatus: map[string]domain.PaymentStatus{
 			"SUCCESS":  domain.PaymentStatusSuccess,
 			"PAYERROR": domain.PaymentStatusFailed,
@@ -58,33 +63,35 @@ func NewNativePaymentService(appID string, mchID string,
 }
 
 func (n *NativePaymentService) Prepay(ctx context.Context, pmt domain.Payment) (string, error) {
-	pmt.Status = domain.PaymentStatusInit
 	err := n.repo.AddPayment(ctx, pmt)
 	if err != nil {
 		return "", err
 	}
-	//sn := uuid.New().String()
-	resp, _, err := n.svc.Prepay(ctx, native.PrepayRequest{
-		Appid:       core.String(n.appID),
-		Mchid:       core.String(n.mchID),
-		Description: core.String(pmt.Description),
-		OutTradeNo:  core.String(pmt.BizTradeNO),
-		// 最好这个要带上
-		TimeExpire: core.Time(time.Now().Add(time.Minute * 30)),
-		Amount: &native.Amount{
-			Total:    core.Int64(pmt.Amt.Total),
-			Currency: core.String(pmt.Amt.Currency),
+	resp, _, err := n.svc.Prepay(ctx,
+		native.PrepayRequest{
+			Appid:       core.String(n.appID),
+			Mchid:       core.String(n.mchID),
+			Description: core.String(pmt.Description),
+			OutTradeNo:  core.String(pmt.BizTradeNO),
+			TimeExpire:  core.Time(time.Now().Add(time.Minute * 30)),
+			NotifyUrl:   core.String(n.notifyURL),
+			Amount: &native.Amount{
+				Currency: core.String(pmt.Amt.Currency),
+				Total:    core.Int64(pmt.Amt.Total),
+			},
 		},
-	})
-
+	)
 	if err != nil {
 		return "", err
 	}
+	// 这里你可以考虑引入另外一个状态，也就是代表你已经调用了第三方支付，正在等回调的状态
+	// 但是这个状态意义不是很大。
+	// 因为你在考虑兜底（定时比较数据）的时候，不管有没有调用第三方支付，
+	// 你都要问一下第三方支付这个
 	return *resp.CodeUrl, nil
 }
 
 func (n *NativePaymentService) SyncWechatInfo(ctx context.Context, bizTradeNO string) error {
-	// 对账
 	txn, _, err := n.svc.QueryOrderByOutTradeNo(ctx, native.QueryOrderByOutTradeNoRequest{
 		OutTradeNo: core.String(bizTradeNO),
 		Mchid:      core.String(n.mchID),
@@ -110,29 +117,28 @@ func (n *NativePaymentService) HandleCallback(ctx context.Context, txn *payments
 func (n *NativePaymentService) updateByTxn(ctx context.Context, txn *payments.Transaction) error {
 	status, ok := n.nativeCBTypeToStatus[*txn.TradeState]
 	if !ok {
-		return fmt.Errorf("%w, 微信的状态是 %s", errUnknownTransactionState, *txn.TradeState)
+		return fmt.Errorf("%w, %s", errUnknownTransactionState, *txn.TradeState)
 	}
-	// 很显然，就是更新一下我们本地数据库里面 payment 的状态
-	err := n.repo.UpdatePayment(ctx, domain.Payment{
-		// 微信过来的 transaction id
-		TxnID:      *txn.TransactionId,
+	pmt := domain.Payment{
 		BizTradeNO: *txn.OutTradeNo,
+		TxnID:      *txn.TransactionId,
 		Status:     status,
-	})
+	}
+	err := n.repo.UpdatePayment(ctx, pmt)
 	if err != nil {
+		// 这里有一个小问题，就是如果超时了的话，你都不知道更新成功了没
 		return err
 	}
-	// 就要通知业务方了
-	// 有些人的系统，会根据支付状态来决定要不要通知
-	// 我要是发消息失败了怎么办？
-	// 站在业务的角度，你是不是至少应该发成功一次
+	// 就是处于结束状态
 	err1 := n.producer.ProducePaymentEvent(ctx, events.PaymentEvent{
-		BizTradeNO: *txn.OutTradeNo,
-		Status:     status.AsUint8(),
+		BizTradeNO: pmt.BizTradeNO,
+		Status:     pmt.Status.AsUint8(),
 	})
 	if err1 != nil {
+		// 要做好监控和告警
 		n.l.Error("发送支付事件失败", logger.Error(err),
-			logger.String("biz_trade_no", *txn.OutTradeNo))
+			logger.String("biz_trade_no", pmt.BizTradeNO))
 	}
+	// 虽然发送事件失败，但是数据库记录了，所以可以返回 Nil
 	return nil
 }

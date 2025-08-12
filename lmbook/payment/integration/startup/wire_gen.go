@@ -23,7 +23,7 @@ func InitWechatNativeService() *wechat.NativePaymentService {
 	paymentDAO := dao.NewPaymentGORMDAO(gormDB)
 	paymentRepository := repository.NewPaymentRepository(paymentDAO)
 	loggerV1 := ioc.InitLogger()
-	nativePaymentService := ioc.InitWechatNativeService(client, paymentRepository, loggerV1, wechatConfig)
+	nativePaymentService := ioc.InitWechatNativeService(client, paymentRepository, loggerV1, nil, wechatConfig)
 	return nativePaymentService
 }
 

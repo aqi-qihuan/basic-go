@@ -2,6 +2,7 @@ package integration
 
 import (
 	intrv1 "basic-go/lmbook/api/proto/gen/intr/v1"
+	"basic-go/lmbook/interactive/grpc"
 	"basic-go/lmbook/interactive/integration/startup"
 	"basic-go/lmbook/interactive/repository/dao"
 	"github.com/redis/go-redis/v9"
@@ -15,13 +16,15 @@ import (
 
 type InteractiveTestSuite struct {
 	suite.Suite
-	db  *gorm.DB
-	rdb redis.Cmdable
+	db     *gorm.DB
+	rdb    redis.Cmdable
+	server *grpc.InteractiveServiceServer
 }
 
 func (s *InteractiveTestSuite) SetupSuite() {
-	s.db = startup.InitDB()
+	s.db = startup.InitTestDB()
 	s.rdb = startup.InitRedis()
+	s.server = startup.InitGRPCServer()
 }
 
 func (s *InteractiveTestSuite) TearDownTest() {
@@ -175,11 +178,10 @@ func (s *InteractiveTestSuite) TestIncrReadCnt() {
 
 	// 不同于 AsyncSms 服务，我们不需要 mock，所以创建一个就可以
 	// 不需要每个测试都创建
-	svc := startup.InitInteractiveService()
 	for _, tc := range testCases {
 		s.T().Run(tc.name, func(t *testing.T) {
 			tc.before(t)
-			resp, err := svc.IncrReadCnt(context.Background(), &intrv1.IncrReadCntRequest{
+			resp, err := s.server.IncrReadCnt(context.Background(), &intrv1.IncrReadCntRequest{
 				Biz: tc.biz, BizId: tc.bizId,
 			})
 			assert.Equal(t, tc.wantErr, err)
@@ -318,14 +320,13 @@ func (s *InteractiveTestSuite) TestLike() {
 		},
 	}
 
-	svc := startup.InitInteractiveService()
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.before(t)
-			resp, err := svc.Like(context.Background(), &intrv1.LikeRequest{
+			resp, err := s.server.Like(context.Background(), &intrv1.LikeRequest{
 				Biz: tc.biz, BizId: tc.bizId, Uid: tc.uid,
 			})
-			assert.Equal(t, tc.wantErr, err)
+			assert.NoError(t, err)
 			assert.Equal(t, tc.wantResp, resp)
 			tc.after(t)
 		})
@@ -421,14 +422,13 @@ func (s *InteractiveTestSuite) TestDislike() {
 		},
 	}
 
-	svc := startup.InitInteractiveService()
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.before(t)
-			resp, err := svc.CancelLike(context.Background(), &intrv1.CancelLikeRequest{
+			resp, err := s.server.CancelLike(context.Background(), &intrv1.CancelLikeRequest{
 				Biz: tc.biz, BizId: tc.bizId, Uid: tc.uid,
 			})
-			assert.Equal(t, tc.wantErr, err)
+			assert.NoError(t, err)
 			assert.Equal(t, tc.wantResp, resp)
 			tc.after(t)
 		})
@@ -622,12 +622,10 @@ func (s *InteractiveTestSuite) TestCollect() {
 		},
 	}
 
-	svc := startup.InitInteractiveService()
-
 	for _, tc := range testCases {
 		s.T().Run(tc.name, func(t *testing.T) {
 			tc.before(t)
-			resp, err := svc.Collect(context.Background(), &intrv1.CollectRequest{
+			resp, err := s.server.Collect(context.Background(), &intrv1.CollectRequest{
 				Biz: tc.biz, BizId: tc.bizId, Cid: tc.cid, Uid: tc.uid,
 			})
 			assert.Equal(t, tc.wantErr, err)
@@ -671,6 +669,7 @@ func (s *InteractiveTestSuite) TestGet() {
 			},
 			wantRes: &intrv1.GetResponse{
 				Intr: &intrv1.Interactive{
+					Biz:        "test",
 					BizId:      12,
 					ReadCnt:    100,
 					CollectCnt: 200,
@@ -720,12 +719,10 @@ func (s *InteractiveTestSuite) TestGet() {
 			},
 		},
 	}
-
-	svc := startup.InitInteractiveService()
 	for _, tc := range testCases {
 		s.T().Run(tc.name, func(t *testing.T) {
 			tc.before(t)
-			res, err := svc.Get(context.Background(), &intrv1.GetRequest{
+			res, err := s.server.Get(context.Background(), &intrv1.GetRequest{
 				Biz: tc.biz, BizId: tc.bizId, Uid: tc.uid,
 			})
 			assert.Equal(t, tc.wantErr, err)
@@ -770,12 +767,14 @@ func (s *InteractiveTestSuite) TestGetByIds() {
 			wantRes: &intrv1.GetByIdsResponse{
 				Intrs: map[int64]*intrv1.Interactive{
 					1: {
+						Biz:        "test",
 						BizId:      1,
 						ReadCnt:    1,
 						CollectCnt: 2,
 						LikeCnt:    3,
 					},
 					2: {
+						Biz:        "test",
 						BizId:      2,
 						ReadCnt:    2,
 						CollectCnt: 3,
@@ -794,10 +793,9 @@ func (s *InteractiveTestSuite) TestGetByIds() {
 		},
 	}
 
-	svc := startup.InitInteractiveService()
 	for _, tc := range testCases {
 		s.T().Run(tc.name, func(t *testing.T) {
-			res, err := svc.GetByIds(context.Background(), &intrv1.GetByIdsRequest{
+			res, err := s.server.GetByIds(context.Background(), &intrv1.GetByIdsRequest{
 				Biz: tc.biz, Ids: tc.ids,
 			})
 			assert.Equal(t, tc.wantErr, err)

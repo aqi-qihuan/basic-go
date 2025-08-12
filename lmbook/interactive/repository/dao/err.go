@@ -2,6 +2,4 @@ package dao
 
 import "gorm.io/gorm"
 
-var (
-	ErrRecordNotFound = gorm.ErrRecordNotFound
-)
+var ErrRecordNotFound = gorm.ErrRecordNotFound

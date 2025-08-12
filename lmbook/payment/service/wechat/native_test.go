@@ -24,7 +24,6 @@ import (
 	"time"
 )
 
-// 下单
 func TestNativeService_Prepay(t *testing.T) {
 	appid := os.Getenv("WEPAY_APP_ID")
 	mchID := os.Getenv("WEPAY_MCH_ID")
@@ -32,7 +31,7 @@ func TestNativeService_Prepay(t *testing.T) {
 	mchSerialNumber := os.Getenv("WEPAY_MCH_SERIAL_NUM")
 	// 使用 utils 提供的函数从本地文件中加载商户私钥，商户私钥会用来生成请求的签名
 	mchPrivateKey, err := utils.LoadPrivateKeyWithPath(
-		"/Users/mindeng/workspace/go/src/geekbang/basic-go/lmbook/payment/config/cert/apiclient_key.pem",
+		"/Users/mindeng/workspace/go/src/basic-go/lmbook/payment/config/cert/apiclient_key.pem",
 	)
 	require.NoError(t, err)
 	ctx := context.Background()

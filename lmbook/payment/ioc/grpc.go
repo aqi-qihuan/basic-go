@@ -3,7 +3,7 @@ package ioc
 import (
 	grpc2 "basic-go/lmbook/payment/grpc"
 	"basic-go/lmbook/pkg/grpcx"
-	ilogger "basic-go/lmbook/pkg/grpcx/interceptor/logger"
+	"basic-go/lmbook/pkg/grpcx/interceptors/log"
 	"basic-go/lmbook/pkg/logger"
 	"github.com/spf13/viper"
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -23,7 +23,7 @@ func InitGRPCServer(wesvc *grpc2.WechatServiceServer,
 		panic(err)
 	}
 	server := grpc.NewServer(grpc.ChainUnaryInterceptor(
-		ilogger.NewInterceptorBuilder(l).BuildServerUnaryInterceptor(),
+		log.NewLoggerInterceptorBuilder(l).BuildUnaryServerInterceptor(),
 	))
 	wesvc.Register(server)
 	return &grpcx.Server{
