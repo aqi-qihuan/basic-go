@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
-COPY lmbook /app/lmbook
+FROM ubuntu:24.04
+COPY lmvook /app/lmbook
 WORKDIR /app
 CMD ["/app/lmbook"]
