@@ -3,6 +3,7 @@ package ioc
 import (
 	"basic-go/lmbook/pkg/grpcx"
 	"basic-go/lmbook/pkg/logger"
+	feedgrpc "basic-go/lmbook/feed/grpc"
 	"github.com/spf13/viper"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
@@ -10,7 +11,7 @@ import (
 
 func InitGRPCxServer(l logger.LoggerV1,
 	ecli *clientv3.Client,
-	feedSvc *grpc2.FeedEventGrpcSvc) *grpcx.Server {
+	feedSvc *feedgrpc.FeedEventGrpcSvc) *grpcx.Server {
 	type Config struct {
 		Port     int    `yaml:"port"`
 		EtcdAddr string `yaml:"etcdAddr"`
