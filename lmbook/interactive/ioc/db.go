@@ -24,8 +24,8 @@ func InitDstDB() DstDB {
 	return initDB("dst")
 }
 
-func InitDoubleWritePool(src SrcDB, dst DstDB, l logger.LoggerV1) *connpool.DoubleWritePool {
-	return connpool.NewDoubleWritePool(src, dst, l)
+func InitDoubleWritePool(src SrcDB, dst DstDB) *connpool.DoubleWritePool {
+	return connpool.NewDoubleWritePool(src, dst)
 }
 
 func InitBizDB(p *connpool.DoubleWritePool) *gorm.DB {
@@ -88,7 +88,7 @@ func initDB(key string) *gorm.DB {
 	}
 
 	err = db.Use(tracing.NewPlugin(tracing.WithoutMetrics(),
-		tracing.WithDBName("lmbook_"+key)))
+		tracing.WithDBSystem("lmbook_"+key)))
 	if err != nil {
 		panic(err)
 	}
@@ -102,5 +102,5 @@ func initDB(key string) *gorm.DB {
 type goormLoggerFunc func(msg string, fields ...logger.Field)
 
 func (g goormLoggerFunc) Printf(s string, i ...interface{}) {
-	g(s, logger.Field{Key: "args", Val: i})
+	g(s, logger.Field{Key: "args", Value: i})
 }

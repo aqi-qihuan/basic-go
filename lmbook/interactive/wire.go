@@ -3,7 +3,6 @@
 package main
 
 import (
-	"basic-go/lmbook/interactive/events"
 	"basic-go/lmbook/interactive/grpc"
 	"basic-go/lmbook/interactive/ioc"
 	repository2 "basic-go/lmbook/interactive/repository"
@@ -23,7 +22,7 @@ var thirdPartySet = wire.NewSet(ioc.InitSrcDB,
 	ioc.InitRedis)
 
 var interactiveSvcSet = wire.NewSet(dao2.NewGORMInteractiveDAO,
-	cache2.NewInteractiveRedisCache,
+	cache2.NewRedisInteractiveCache,
 	repository2.NewCachedInteractiveRepository,
 	service2.NewInteractiveService,
 )
@@ -32,7 +31,7 @@ func InitApp() *App {
 	wire.Build(thirdPartySet,
 		interactiveSvcSet,
 		grpc.NewInteractiveServiceServer,
-		events.NewInteractiveReadEventConsumer,
+		ioc.InitInteractiveReadEventConsumer,
 		ioc.InitInteractiveProducer,
 		ioc.InitFixerConsumer,
 		ioc.InitConsumers,

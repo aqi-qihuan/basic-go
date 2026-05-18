@@ -37,7 +37,7 @@ func InitGinxServer(l logger.LoggerV1,
 }
 
 func InitInteractiveProducer(p sarama.SyncProducer) events.Producer {
-	return events.NewSaramaProducer("inconsistent_interactive", p)
+	return events.NewSaramaProducer(p, "inconsistent_interactive")
 }
 
 func InitFixerConsumer(client sarama.Client,
