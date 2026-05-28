@@ -1,0 +1,364 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========================================
+   HOK 营地风格 - 蓝梦社区设计系统
+   暗黑沉浸 + 金色荣耀 + 竞技氛围
+   ======================================== */
+
+:root {
+  /* 背景色系 */
+  --bg-deep: #0B0D17;
+  --bg-surface: #131520;
+  --bg-elevated: #1A1D2B;
+  --bg-hover: #222536;
+
+  /* 品牌色 */
+  --gold: #F0C060;
+  --gold-light: #F5D88A;
+  --gold-dark: #C8982A;
+  --orange: #FF8C00;
+  --gold-glow: rgba(240, 192, 96, 0.3);
+
+  /* 文字色 */
+  --text-primary: #E8E0D0;
+  --text-bright: #F5F0E8;
+  --text-secondary: #9C9688;
+  --text-muted: #6B6558;
+
+  /* 科技辅色 */
+  --tech-blue: #3B82F6;
+  --tech-cyan: #06B6D4;
+
+  /* 状态色 */
+  --success: #22C55E;
+  --danger: #EF4444;
+  --warning: #F97316;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--text-primary);
+  background-color: var(--bg-deep);
+  line-height: 1.6;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* 暗色滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(240, 192, 96, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(240, 192, 96, 0.5);
+}
+
+/* ========================================
+   HOK 风格 - 暗色玻璃卡片
+   ======================================== */
+.glass-card {
+  background: rgba(19, 21, 32, 0.85);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(240, 192, 96, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(240, 192, 96, 0.25);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(240, 192, 96, 0.1);
+}
+
+/* 金色边框卡片（排行榜/特殊强调） */
+.glass-card-gold {
+  background: linear-gradient(135deg, rgba(240, 192, 96, 0.05) 0%, rgba(19, 21, 32, 0.9) 100%);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(240, 192, 96, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 0 30px rgba(240, 192, 96, 0.15);
+}
+
+/* ========================================
+   HOK 风格 - 按钮
+   ======================================== */
+.btn-gold {
+  background: linear-gradient(135deg, #F0C060 0%, #FF8C00 100%);
+  color: #0B0D17;
+  font-weight: 700;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 24px;
+  box-shadow: 0 4px 16px rgba(240, 192, 96, 0.3);
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.btn-gold:hover {
+  box-shadow: 0 8px 24px rgba(240, 192, 96, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-gold:active {
+  transform: scale(0.97);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid rgba(240, 192, 96, 0.3);
+  color: #F0C060;
+  border-radius: 12px;
+  padding: 10px 24px;
+  transition: all 200ms ease;
+  cursor: pointer;
+}
+
+.btn-outline:hover {
+  background: rgba(240, 192, 96, 0.1);
+  border-color: #F0C060;
+}
+
+/* ========================================
+   HOK 风格 - 标签胶囊
+   ======================================== */
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background: rgba(240, 192, 96, 0.1);
+  border: 1px solid rgba(240, 192, 96, 0.2);
+  color: #F0C060;
+  transition: all 200ms ease;
+  cursor: pointer;
+}
+
+.tag-pill:hover {
+  background: rgba(240, 192, 96, 0.2);
+  border-color: rgba(240, 192, 96, 0.4);
+}
+
+.tag-pill.active {
+  background: linear-gradient(135deg, #F0C060 0%, #FF8C00 100%);
+  color: #0B0D17;
+  font-weight: 700;
+  border-color: transparent;
+}
+
+.tag-tech {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  color: #60A5FA;
+}
+
+/* ========================================
+   HOK 风格 - 金色装饰线
+   ======================================== */
+.gold-divider {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #F0C060, transparent);
+  border: none;
+}
+
+.gold-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(240, 192, 96, 0.3), transparent);
+}
+
+/* ========================================
+   HOK 风格 - 荣耀光晕背景
+   ======================================== */
+.bg-glory {
+  background: radial-gradient(circle at 50% 0%, rgba(240, 192, 96, 0.08) 0%, transparent 50%);
+}
+
+.bg-gradient-dark {
+  background: linear-gradient(135deg, #0B0D17 0%, #131520 50%, #0B0D17 100%);
+}
+
+/* ========================================
+   动画
+   ======================================== */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+@keyframes goldPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); }
+  50% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.2); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, rgba(240, 192, 96, 0.05) 25%, rgba(240, 192, 96, 0.1) 50%, rgba(240, 192, 96, 0.05) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.animate-gold-pulse {
+  animation: goldPulse 2s ease-in-out infinite;
+}
+
+/* 点赞动画 */
+@keyframes likePop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.animate-like {
+  animation: likePop 0.3s ease;
+}
+
+/* ========================================
+   文章正文排版（HOK 风格）
+   ======================================== */
+.article-content {
+  color: var(--text-primary);
+  font-size: 18px;
+  line-height: 1.8;
+  max-width: 768px;
+  margin: 0 auto;
+}
+
+.article-content h1,
+.article-content h2,
+.article-content h3 {
+  color: var(--text-bright);
+  font-weight: 700;
+  margin-top: 2em;
+  margin-bottom: 0.8em;
+}
+
+.article-content h1 { font-size: 32px; }
+.article-content h2 { font-size: 24px; }
+.article-content h3 { font-size: 20px; }
+
+.article-content p {
+  margin-bottom: 1.2em;
+}
+
+.article-content a {
+  color: #60A5FA;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(96, 165, 250, 0.3);
+  transition: all 200ms ease;
+}
+
+.article-content a:hover {
+  color: #93C5FD;
+  border-bottom-color: #93C5FD;
+}
+
+.article-content blockquote {
+  border-left: 3px solid #F0C060;
+  background: rgba(240, 192, 96, 0.05);
+  padding: 16px 20px;
+  margin: 1.5em 0;
+  border-radius: 0 8px 8px 0;
+  color: var(--text-secondary);
+}
+
+.article-content code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  background: rgba(240, 192, 96, 0.1);
+  color: #F0C060;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.article-content pre {
+  background: #0D0F1A;
+  border: 1px solid rgba(240, 192, 96, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  overflow-x: auto;
+  margin: 1.5em 0;
+}
+
+.article-content pre code {
+  background: none;
+  color: var(--text-primary);
+  padding: 0;
+}
+
+.article-content img {
+  max-width: 100%;
+  border-radius: 12px;
+  margin: 1.5em 0;
+}
+
+/* ========================================
+   无障碍
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus 状态 */
+:focus-visible {
+  outline: 2px solid #F0C060;
+  outline-offset: 2px;
+}
+
+/* 选中文字颜色 */
+::selection {
+  background: rgba(240, 192, 96, 0.3);
+  color: #F5F0E8;
+}
