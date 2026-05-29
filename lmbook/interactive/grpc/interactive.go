@@ -67,6 +67,29 @@ func (i *InteractiveServiceServer) GetByIds(ctx context.Context, request *intrv1
 	}, nil
 }
 
+func (i *InteractiveServiceServer) CancelCollect(ctx context.Context, request *intrv1.CancelCollectRequest) (*intrv1.CancelCollectResponse, error) {
+	err := i.svc.CancelCollect(ctx, request.GetBiz(), request.GetBizId(), request.GetUid())
+	return &intrv1.CancelCollectResponse{}, err
+}
+
+func (i *InteractiveServiceServer) GetCollections(ctx context.Context, request *intrv1.GetCollectionsRequest) (*intrv1.GetCollectionsResponse, error) {
+	bizIds, err := i.svc.GetCollections(ctx, request.GetUid(), request.GetBiz(),
+		int(request.GetOffset()), int(request.GetLimit()))
+	if err != nil {
+		return nil, err
+	}
+	items := make([]*intrv1.CollectionItem, len(bizIds))
+	for idx, bizId := range bizIds {
+		items[idx] = &intrv1.CollectionItem{
+			BizId: bizId,
+		}
+	}
+	return &intrv1.GetCollectionsResponse{
+		Items: items,
+		Total: int64(len(bizIds)),
+	}, nil
+}
+
 func (i *InteractiveServiceServer) toDTO(intr domain.Interactive) *intrv1.Interactive {
 	return &intrv1.Interactive{
 		Biz:        intr.Biz,

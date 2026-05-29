@@ -87,14 +87,13 @@ const UserProfilePage: React.FC = () => {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-deep)' }}>
       {/* 用户头部 */}
-      <div style={{
+      <div className="p-4 sm:p-6" style={{
         background: 'linear-gradient(135deg, rgba(240,192,96,0.12) 0%, rgba(11,13,23,0.95) 100%)',
-        padding: '48px 24px',
         borderBottom: '1px solid rgba(240, 192, 96, 0.08)',
       }}>
-        <div className="max-w-4xl mx-auto flex items-center gap-8 flex-wrap">
+        <div className="max-w-4xl mx-auto flex items-center gap-4 sm:gap-8 flex-wrap">
           <Avatar
-            size={100}
+            size={80}
             src={user.avatar}
             icon={<UserOutlined />}
             style={{
@@ -135,7 +134,7 @@ const UserProfilePage: React.FC = () => {
                 style={{
                   background: 'transparent',
                   border: '1px solid rgba(240, 192, 96, 0.3)',
-                  color: '#F0C060', borderRadius: 10, height: 40,
+                  color: '#F0C060', borderRadius: 10, height: 44,
                 }}
               >
                 编辑资料
@@ -151,7 +150,7 @@ const UserProfilePage: React.FC = () => {
                     : 'linear-gradient(135deg, #F0C060 0%, #FF8C00 100%)',
                   border: following ? '1px solid rgba(240, 192, 96, 0.3)' : 'none',
                   color: following ? '#F0C060' : '#0B0D17',
-                  fontWeight: 700, borderRadius: 10, height: 40,
+                  fontWeight: 700, borderRadius: 10, height: 44,
                 }}
               >
                 {following ? '已关注' : '关注'}
@@ -172,7 +171,7 @@ const UserProfilePage: React.FC = () => {
               children: articlesLoading ? (
                 <div className="loading-spinner"><Spin size="large" /></div>
               ) : articles.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                   {articles.map(article => <ArticleCard key={article.id} article={article} />)}
                 </div>
               ) : (

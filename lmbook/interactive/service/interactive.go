@@ -17,6 +17,10 @@ type InteractiveService interface {
 	CancelLike(ctx context.Context, biz string, bizId int64, uid int64) error
 	// Collect 收藏
 	Collect(ctx context.Context, biz string, bizId, cid, uid int64) error
+	// CancelCollect 取消收藏
+	CancelCollect(ctx context.Context, biz string, bizId, uid int64) error
+	// GetCollections 获取用户收藏的 bizId 列表
+	GetCollections(ctx context.Context, uid int64, biz string, offset, limit int) ([]int64, error)
 	Get(ctx context.Context, biz string, bizId, uid int64) (domain.Interactive, error)
 	GetByIds(ctx context.Context, biz string, bizIds []int64) (map[int64]domain.Interactive, error)
 }
@@ -86,6 +90,18 @@ func (i *interactiveService) CancelLike(ctx context.Context, biz string, bizId i
 func (i *interactiveService) Collect(ctx context.Context,
 	biz string, bizId, cid, uid int64) error {
 	return i.repo.AddCollectionItem(ctx, biz, bizId, cid, uid)
+}
+
+// CancelCollect 取消收藏
+func (i *interactiveService) CancelCollect(ctx context.Context,
+	biz string, bizId, uid int64) error {
+	return i.repo.RemoveCollectionItem(ctx, biz, bizId, uid)
+}
+
+// GetCollections 获取用户收藏列表
+func (i *interactiveService) GetCollections(ctx context.Context,
+	uid int64, biz string, offset, limit int) ([]int64, error) {
+	return i.repo.GetCollectionsByUser(ctx, uid, biz, offset, limit)
 }
 
 func NewInteractiveService(repo repository.InteractiveRepository,

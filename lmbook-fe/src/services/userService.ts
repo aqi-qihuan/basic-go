@@ -35,6 +35,14 @@ export const refreshToken = async (): Promise<void> => {
   return unwrap(response)
 }
 
+// ========== 微信登录 ==========
+
+/** 获取微信授权 URL - GET /oauth2/wechat/authurl */
+export const getWechatAuthUrl = async (): Promise<string> => {
+  const response = await request.get('/oauth2/wechat/authurl')
+  return response.data.data
+}
+
 // ========== 短信登录 ==========
 
 /** 发送短信验证码 - POST /users/login_sms/code/send */

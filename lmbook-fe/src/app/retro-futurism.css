@@ -1,0 +1,715 @@
+/* 复古未来主义设计系统 - 蓝梦社区(lmbook) */
+
+/* 颜色变量 */
+:root {
+  /* 主要颜色 */
+  --retro-primary: #7C3AED;
+  --retro-primary-light: #A78BFA;
+  --retro-primary-dark: #5B21B6;
+  
+  /* 次要颜色 */
+  --retro-secondary: #A78BFA;
+  --retro-secondary-light: #C4B5FD;
+  --retro-secondary-dark: #7C3AED;
+  
+  /* CTA颜色 */
+  --retro-cta: #22C55E;
+  --retro-cta-light: #4ADE80;
+  --retro-cta-dark: #16A34A;
+  
+  /* 背景颜色 */
+  --retro-bg: #FAF5FF;
+  --retro-bg-dark: #1A1A2E;
+  --retro-bg-darker: #0F0F23;
+  
+  /* 文字颜色 */
+  --retro-text: #4C1D95;
+  --retro-text-light: #6D28D9;
+  --retro-text-muted: #8B5CF6;
+  
+  /* 霓虹灯效果 */
+  --neon-purple: #7C3AED;
+  --neon-pink: #EC4899;
+  --neon-blue: #3B82F6;
+  --neon-green: #22C55E;
+  
+  /* CRT效果 */
+  --crt-scanline: rgba(0, 0, 0, 0.1);
+  --crt-glow: rgba(124, 58, 237, 0.3);
+  
+  /* 故障效果 */
+  --glitch-red: #FF0000;
+  --glitch-blue: #0000FF;
+  --glitch-green: #00FF00;
+}
+
+/* 字体导入 */
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Russo+One&display=swap');
+
+/* 复古未来主义基础样式 */
+.retro-futurism {
+  font-family: 'Chakra Petch', sans-serif;
+  background: linear-gradient(135deg, var(--retro-bg-dark), var(--retro-bg-darker));
+  color: var(--retro-text);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* CRT扫描线效果 */
+.crt-scanlines::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    var(--crt-scanline),
+    var(--crt-scanline) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.3;
+}
+
+/* 霓虹灯文字效果 */
+.neon-text {
+  text-shadow: 
+    0 0 5px var(--neon-purple),
+    0 0 10px var(--neon-purple),
+    0 0 20px var(--neon-purple),
+    0 0 40px var(--neon-purple);
+  animation: neon-flicker 1.5s infinite alternate;
+}
+
+/* 霓虹灯闪烁动画 */
+@keyframes neon-flicker {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+    text-shadow: 
+      0 0 5px var(--neon-purple),
+      0 0 10px var(--neon-purple),
+      0 0 20px var(--neon-purple),
+      0 0 40px var(--neon-purple);
+  }
+  20%, 24%, 55% {
+    text-shadow: none;
+  }
+}
+
+/* 霓虹灯盒子效果 */
+.neon-box {
+  box-shadow: 
+    0 0 5px var(--neon-purple),
+    0 0 10px var(--neon-purple),
+    0 0 20px var(--neon-purple),
+    0 0 40px var(--neon-purple);
+  border: 1px solid var(--neon-purple);
+}
+
+/* 故障效果 */
+.glitch {
+  position: relative;
+  animation: glitch 2s infinite;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--retro-bg-dark);
+}
+
+.glitch::before {
+  left: 2px;
+  text-shadow: -2px 0 var(--glitch-red);
+  clip: rect(24px, 550px, 90px, 0);
+  animation: glitch-anim 2s infinite linear alternate-reverse;
+}
+
+.glitch::after {
+  left: -2px;
+  text-shadow: -2px 0 var(--glitch-blue);
+  clip: rect(85px, 550px, 140px, 0);
+  animation: glitch-anim 2s infinite linear alternate-reverse;
+  animation-delay: -1s;
+}
+
+/* 故障动画 */
+@keyframes glitch {
+  0% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-3px, 3px);
+  }
+  40% {
+    transform: translate(-3px, -3px);
+  }
+  60% {
+    transform: translate(3px, 3px);
+  }
+  80% {
+    transform: translate(3px, -3px);
+  }
+  100% {
+    transform: translate(0);
+  }
+}
+
+@keyframes glitch-anim {
+  0% {
+    clip: rect(31px, 9999px, 94px, 0);
+    transform: skew(0.8deg);
+  }
+  5% {
+    clip: rect(70px, 9999px, 71px, 0);
+    transform: skew(0.2deg);
+  }
+  10% {
+    clip: rect(29px, 9999px, 14px, 0);
+    transform: skew(0.9deg);
+  }
+  15% {
+    clip: rect(68px, 9999px, 99px, 0);
+    transform: skew(0.6deg);
+  }
+  20% {
+    clip: rect(61px, 9999px, 65px, 0);
+    transform: skew(0.4deg);
+  }
+  25% {
+    clip: rect(34px, 9999px, 13px, 0);
+    transform: skew(0.1deg);
+  }
+  30% {
+    clip: rect(35px, 9999px, 33px, 0);
+    transform: skew(0.7deg);
+  }
+  35% {
+    clip: rect(14px, 9999px, 79px, 0);
+    transform: skew(0.5deg);
+  }
+  40% {
+    clip: rect(2px, 9999px, 65px, 0);
+    transform: skew(0.3deg);
+  }
+  45% {
+    clip: rect(35px, 9999px, 69px, 0);
+    transform: skew(0.8deg);
+  }
+  50% {
+    clip: rect(62px, 9999px, 73px, 0);
+    transform: skew(0.2deg);
+  }
+  55% {
+    clip: rect(54px, 9999px, 56px, 0);
+    transform: skew(0.9deg);
+  }
+  60% {
+    clip: rect(29px, 9999px, 14px, 0);
+    transform: skew(0.6deg);
+  }
+  65% {
+    clip: rect(68px, 9999px, 99px, 0);
+    transform: skew(0.4deg);
+  }
+  70% {
+    clip: rect(61px, 9999px, 65px, 0);
+    transform: skew(0.1deg);
+  }
+  75% {
+    clip: rect(34px, 9999px, 13px, 0);
+    transform: skew(0.7deg);
+  }
+  80% {
+    clip: rect(35px, 9999px, 33px, 0);
+    transform: skew(0.5deg);
+  }
+  85% {
+    clip: rect(14px, 9999px, 79px, 0);
+    transform: skew(0.3deg);
+  }
+  90% {
+    clip: rect(2px, 9999px, 65px, 0);
+    transform: skew(0.8deg);
+  }
+  95% {
+    clip: rect(35px, 9999px, 69px, 0);
+    transform: skew(0.2deg);
+  }
+  100% {
+    clip: rect(62px, 9999px, 73px, 0);
+    transform: skew(0.9deg);
+  }
+}
+
+/* 像素艺术效果 */
+.pixel-art {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* 几何图案背景 */
+.geometric-pattern {
+  background-image: 
+    linear-gradient(30deg, var(--retro-primary) 12%, transparent 12.5%, transparent 87%, var(--retro-primary) 87.5%, var(--retro-primary)),
+    linear-gradient(150deg, var(--retro-primary) 12%, transparent 12.5%, transparent 87%, var(--retro-primary) 87.5%, var(--retro-primary)),
+    linear-gradient(30deg, var(--retro-primary) 12%, transparent 12.5%, transparent 87%, var(--retro-primary) 87.5%, var(--retro-primary)),
+    linear-gradient(150deg, var(--retro-primary) 12%, transparent 12.5%, transparent 87%, var(--retro-primary) 87.5%, var(--retro-primary)),
+    linear-gradient(60deg, var(--retro-secondary) 25%, transparent 25.5%, transparent 75%, var(--retro-secondary) 75%, var(--retro-secondary)),
+    linear-gradient(60deg, var(--retro-secondary) 25%, transparent 25.5%, transparent 75%, var(--retro-secondary) 75%, var(--retro-secondary));
+  background-size: 80px 140px;
+  background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
+}
+
+/* 复古按钮 */
+.retro-button {
+  font-family: 'Russo One', sans-serif;
+  background: linear-gradient(135deg, var(--retro-primary), var(--retro-primary-dark));
+  color: white;
+  border: 2px solid var(--retro-primary-light);
+  padding: 12px 24px;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.retro-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.retro-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 0 10px var(--neon-purple),
+    0 0 20px var(--neon-purple),
+    0 0 40px var(--neon-purple);
+}
+
+.retro-button:hover::before {
+  left: 100%;
+}
+
+/* 复古卡片 */
+.retro-card {
+  background: rgba(26, 26, 46, 0.8);
+  border: 1px solid var(--retro-primary);
+  border-radius: 8px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.retro-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, transparent, rgba(124, 58, 237, 0.1));
+  pointer-events: none;
+}
+
+.retro-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 
+    0 0 10px var(--neon-purple),
+    0 0 20px var(--neon-purple);
+}
+
+/* 复古输入框 */
+.retro-input {
+  font-family: 'Chakra Petch', sans-serif;
+  background: rgba(26, 26, 46, 0.8);
+  border: 1px solid var(--retro-primary);
+  border-radius: 4px;
+  padding: 12px 16px;
+  color: var(--retro-text);
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.retro-input:focus {
+  outline: none;
+  border-color: var(--retro-cta);
+  box-shadow: 
+    0 0 5px var(--neon-green),
+    0 0 10px var(--neon-green);
+}
+
+/* 复古标签 */
+.retro-tag {
+  font-family: 'Russo One', sans-serif;
+  background: linear-gradient(135deg, var(--retro-primary), var(--retro-secondary));
+  color: white;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: inline-block;
+}
+
+/* 复古进度条 */
+.retro-progress {
+  background: rgba(26, 26, 46, 0.8);
+  border: 1px solid var(--retro-primary);
+  border-radius: 4px;
+  height: 20px;
+  overflow: hidden;
+  position: relative;
+}
+
+.retro-progress::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, var(--retro-primary), var(--retro-cta));
+  width: 70%;
+  animation: progress-glow 2s ease-in-out infinite;
+}
+
+@keyframes progress-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px var(--neon-purple);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--neon-purple), 0 0 40px var(--neon-purple);
+  }
+}
+
+/* 复古滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--retro-bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--retro-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--retro-primary-light);
+}
+
+/* 复古选择文本 */
+::selection {
+  background: var(--retro-primary);
+  color: white;
+}
+
+/* 复古链接 */
+.retro-link {
+  color: var(--retro-cta);
+  text-decoration: none;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.retro-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--retro-cta);
+  transition: width 0.3s ease;
+}
+
+.retro-link:hover {
+  color: var(--retro-cta-light);
+  text-shadow: 0 0 5px var(--neon-green);
+}
+
+.retro-link:hover::after {
+  width: 100%;
+}
+
+/* 复古分隔线 */
+.retro-divider {
+  border: none;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--retro-primary), transparent);
+  margin: 20px 0;
+}
+
+/* 复古加载动画 */
+.retro-loading {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--retro-primary);
+  border-top: 3px solid var(--retro-cta);
+  border-radius: 50%;
+  animation: retro-spin 1s linear infinite;
+}
+
+@keyframes retro-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 复古工具提示 */
+.retro-tooltip {
+  position: relative;
+}
+
+.retro-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--retro-bg-dark);
+  color: var(--retro-text);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  border: 1px solid var(--retro-primary);
+}
+
+.retro-tooltip:hover::after {
+  opacity: 1;
+  visibility: visible;
+  bottom: calc(100% + 5px);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .retro-button {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+
+  .retro-card {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .retro-button {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+
+  .retro-card {
+    padding: 10px;
+  }
+}
+
+/* 页面过渡动画 */
+.page-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms ease-out, transform 300ms ease-out;
+}
+
+.page-exit {
+  opacity: 1;
+}
+
+.page-exit-active {
+  opacity: 0;
+  transition: opacity 200ms ease-in;
+}
+
+/* 淡入动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* 滑入动画 */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-in-left {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+/* 滑入右侧动画 */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* 缩放动画 */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.scale-in {
+  animation: scaleIn 0.2s ease-out;
+}
+
+/* 霓虹灯闪烁动画（用于重点元素） */
+@keyframes neonPulse {
+  0%, 100% {
+    box-shadow: 0 0 5px var(--neon-purple), 0 0 10px var(--neon-purple);
+  }
+  50% {
+    box-shadow: 0 0 10px var(--neon-purple), 0 0 20px var(--neon-purple), 0 0 30px var(--neon-purple);
+  }
+}
+
+.neon-pulse {
+  animation: neonPulse 2s ease-in-out infinite;
+}
+
+/* 打字机效果 */
+@keyframes typewriter {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.typewriter {
+  overflow: hidden;
+  white-space: nowrap;
+  animation: typewriter 2s steps(40, end);
+}
+
+/* 光标闪烁效果 */
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.blink {
+  animation: blink 1s step-end infinite;
+}
+
+/* 骨架屏加载效果 */
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(124, 58, 237, 0.1) 0%,
+    rgba(124, 58, 237, 0.2) 50%,
+    rgba(124, 58, 237, 0.1) 100%
+  );
+  background-size: 200px 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+/* 悬浮提升效果 */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+}
+
+/* 点击波纹效果 */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease, height 0.3s ease;
+}
+
+.ripple:active::after {
+  width: 200%;
+  height: 200%;
+}

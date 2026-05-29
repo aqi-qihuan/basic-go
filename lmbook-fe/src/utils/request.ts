@@ -25,8 +25,20 @@ request.interceptors.request.use(
 // 响应拦截器
 // 后端返回格式: { code: number, msg: string, data: any }
 // code === 0 表示成功
+// Token 通过响应头 x-jwt-token / x-refresh-token 返回
 request.interceptors.response.use(
   (response: AxiosResponse) => {
+    // 从响应头提取 Token
+    const jwtToken = response.headers['x-jwt-token']
+    const refreshToken = response.headers['x-refresh-token']
+
+    if (jwtToken) {
+      localStorage.setItem('token', jwtToken)
+    }
+    if (refreshToken) {
+      localStorage.setItem('refresh_token', refreshToken)
+    }
+
     const { data } = response
 
     // 后端 ginx.Result: code=0 成功, code>0 业务错误
@@ -42,6 +54,7 @@ request.interceptors.response.use(
     if (error.response?.status === 401) {
       message.error('请先登录')
       localStorage.removeItem('token')
+      localStorage.removeItem('refresh_token')
       window.location.href = '/login'
     } else if (error.response?.status === 404) {
       message.error('接口不存在')

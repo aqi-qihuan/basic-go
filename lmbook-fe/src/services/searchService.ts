@@ -62,6 +62,16 @@ export const attachTags = async (biz: string, bizId: number, tids: number[]) => 
   return unwrap(response)
 }
 
+// ========== 互动系统 ==========
+
+/** 批量获取互动数据（点赞/收藏状态） */
+export const getInteractiveByIds = async (biz: string, ids: number[]) => {
+  const response = request.get('/interactive/by_ids', {
+    params: { biz, ids: ids.join(',') }
+  })
+  return unwrap(await response)
+}
+
 // ========== Feed 流 ==========
 
 /** 获取用户 Feed 流 */

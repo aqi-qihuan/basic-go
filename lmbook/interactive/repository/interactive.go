@@ -18,6 +18,8 @@ type InteractiveRepository interface {
 	IncrLike(ctx context.Context, biz string, bizId, uid int64) error
 	DecrLike(ctx context.Context, biz string, bizId, uid int64) error
 	AddCollectionItem(ctx context.Context, biz string, bizId, cid int64, uid int64) error
+	RemoveCollectionItem(ctx context.Context, biz string, bizId, uid int64) error
+	GetCollectionsByUser(ctx context.Context, uid int64, biz string, offset, limit int) ([]int64, error)
 	Get(ctx context.Context, biz string, bizId int64) (domain.Interactive, error)
 	Liked(ctx context.Context, biz string, id int64, uid int64) (bool, error)
 	Collected(ctx context.Context, biz string, id int64, uid int64) (bool, error)
@@ -111,6 +113,27 @@ func (c *CachedReadCntRepository) AddCollectionItem(ctx context.Context,
 		return err
 	}
 	return c.cache.IncrCollectCntIfPresent(ctx, biz, bizId)
+}
+
+func (c *CachedReadCntRepository) RemoveCollectionItem(ctx context.Context,
+	biz string, bizId, uid int64) error {
+	err := c.dao.DeleteCollectionBiz(ctx, biz, bizId, uid)
+	if err != nil {
+		return err
+	}
+	return c.cache.DecrCollectCntIfPresent(ctx, biz, bizId)
+}
+
+func (c *CachedReadCntRepository) GetCollectionsByUser(ctx context.Context,
+	uid int64, biz string, offset, limit int) ([]int64, error) {
+	collections, err := c.dao.GetCollectionsByUser(ctx, uid, biz, offset, limit)
+	if err != nil {
+		return nil, err
+	}
+	return slice.Map[dao.UserCollectionBiz, int64](collections,
+		func(idx int, src dao.UserCollectionBiz) int64 {
+			return src.BizId
+		}), nil
 }
 
 func (c *CachedReadCntRepository) Get(ctx context.Context,

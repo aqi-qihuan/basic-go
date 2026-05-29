@@ -52,6 +52,14 @@ func (i *InteractiveClient) GetByIds(ctx context.Context, in *intrv1.GetByIdsReq
 	return i.selectClient().GetByIds(ctx, in)
 }
 
+func (i *InteractiveClient) CancelCollect(ctx context.Context, in *intrv1.CancelCollectRequest, opts ...grpc.CallOption) (*intrv1.CancelCollectResponse, error) {
+	return i.selectClient().CancelCollect(ctx, in)
+}
+
+func (i *InteractiveClient) GetCollections(ctx context.Context, in *intrv1.GetCollectionsRequest, opts ...grpc.CallOption) (*intrv1.GetCollectionsResponse, error) {
+	return i.selectClient().GetCollections(ctx, in)
+}
+
 func (i *InteractiveClient) selectClient() intrv1.InteractiveServiceClient {
 	num := rand.Int31n(100)
 	if num < i.threshold.Load() {

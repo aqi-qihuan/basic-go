@@ -5,12 +5,13 @@ import {
   ArrowLeftOutlined, LikeOutlined, LikeFilled,
   StarOutlined, StarFilled, ShareAltOutlined,
   UserOutlined, ClockCircleOutlined, EyeOutlined,
-  MessageOutlined
+  MessageOutlined, GiftOutlined
 } from '@ant-design/icons'
 import { getPublishedArticle, likeArticle, collectArticle } from '@/services/articleService'
 import CommentList from '@/components/CommentList'
 import CommentForm from '@/components/CommentForm'
 import { TagPill } from '@/components/common'
+import RewardModal from '@/components/common/RewardModal'
 import { useUserStore } from '@/store/userStore'
 import type { Article } from '@/types/article'
 import dayjs from 'dayjs'
@@ -24,6 +25,7 @@ const ArticleDetailPage: React.FC = () => {
   const [favorited, setFavorited] = useState(false)
   const [likeCount, setLikeCount] = useState(0)
   const [commentRefreshKey, setCommentRefreshKey] = useState(0)
+  const [rewardVisible, setRewardVisible] = useState(false)
   const navigate = useNavigate()
   const { isLogin } = useUserStore()
 
@@ -36,9 +38,9 @@ const ArticleDetailPage: React.FC = () => {
     try {
       const data = await getPublishedArticle(articleId)
       setArticle(data)
-      setLikeCount(data.likeCnt || 0)
-      setLiked(data.liked || false)
-      setFavorited(data.collected || false)
+      setLikeCount(data.likeCount || 0)
+      setLiked((data.likeCount || 0) > 0)
+      setFavorited((data.favoriteCount || 0) > 0)
     } catch {
       message.error('获取文章详情失败')
       navigate('/')
@@ -133,7 +135,7 @@ const ArticleDetailPage: React.FC = () => {
         </div>
       </div>
 
-      <article className="max-w-4xl mx-auto px-4 py-8">
+      <article className="max-w-4xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
         {/* 文章头部 */}
         <div className="mb-8">
           {/* 标签 */}
@@ -147,7 +149,7 @@ const ArticleDetailPage: React.FC = () => {
 
           {/* 标题 */}
           <h1 style={{
-            fontSize: 36, fontWeight: 800, color: '#F5F0E8',
+            fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 800, color: '#F5F0E8',
             lineHeight: 1.3, marginBottom: 20,
             fontFamily: "'Inter', 'Noto Sans SC', sans-serif",
           }}>
@@ -155,7 +157,7 @@ const ArticleDetailPage: React.FC = () => {
           </h1>
 
           {/* 作者信息 */}
-          <div className="flex items-center gap-4 flex-wrap" style={{ marginBottom: 20 }}>
+          <div className="flex items-center gap-2 sm:gap-4 flex-wrap" style={{ marginBottom: 16 }}>
             <div className="flex items-center gap-2">
               <Avatar
                 size={36}
@@ -193,14 +195,14 @@ const ArticleDetailPage: React.FC = () => {
 
         {/* 文章正文 */}
         <div
-          className="article-content mb-12"
+          className="article-content mb-12 overflow-x-auto break-words"
           dangerouslySetInnerHTML={{ __html: article.content }}
         />
 
         {/* 互动栏 */}
         <div
-          className="glass-card flex items-center justify-center gap-6 mb-12"
-          style={{ padding: '20px 24px', cursor: 'default' }}
+          className="glass-card flex items-center justify-center gap-3 sm:gap-6 mb-8 sm:mb-12"
+          style={{ padding: '14px 16px', cursor: 'default' }}
         >
           <Button
             type="text"
@@ -241,13 +243,34 @@ const ArticleDetailPage: React.FC = () => {
             onClick={handleShare}
             style={{ color: '#9C9688', height: 48, padding: '0 24px' }}
           />
+
+          <Button
+            type="text"
+            size="large"
+            icon={<GiftOutlined style={{ fontSize: 22 }} />}
+            onClick={() => checkLogin(() => setRewardVisible(true))}
+            style={{ color: '#9C9688', height: 48, padding: '0 24px' }}
+          >
+            打赏
+          </Button>
         </div>
 
+        {/* 打赏弹窗 */}
+        {article && (
+          <RewardModal
+            visible={rewardVisible}
+            onClose={() => setRewardVisible(false)}
+            articleId={article.id}
+            articleTitle={article.title}
+            authorName={(article as any).author?.name || '作者'}
+          />
+        )}
+
         {/* 评论区 */}
-        <div style={{ maxWidth: 768, margin: '0 auto' }}>
+        <div className="max-w-3xl mx-auto">
           <div className="flex items-center gap-2 mb-6">
             <MessageOutlined style={{ color: '#F0C060', fontSize: 20 }} />
-            <h2 style={{ color: '#E8E0D0', fontSize: 22, fontWeight: 700, margin: 0 }}>
+            <h2 className="text-lg sm:text-xl" style={{ color: '#E8E0D0', fontWeight: 700, margin: 0 }}>
               评论
               {(article as any).commentCount !== undefined && (
                 <span style={{ color: '#6B6558', fontSize: 14, fontWeight: 400, marginLeft: 8 }}>

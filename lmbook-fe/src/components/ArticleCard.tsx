@@ -1,6 +1,6 @@
 import React from 'react'
 import { Avatar } from 'antd'
-import { EyeOutlined, LikeOutlined, MessageOutlined, UserOutlined } from '@ant-design/icons'
+import { EyeOutlined, LikeOutlined, UserOutlined } from '@ant-design/icons'
 import { Link, useNavigate } from 'react-router-dom'
 import { TagPill } from '@/components/common'
 import type { Article } from '@/types/article'
@@ -11,23 +11,23 @@ interface ArticleCardProps {
   featured?: boolean
 }
 
-/** HOK 营地风格文章卡片 - 暗色玻璃 + 金色点缀 */
+/** HOK 金色风格文章卡片 */
 const ArticleCard: React.FC<ArticleCardProps> = ({ article, featured = false }) => {
   const navigate = useNavigate()
 
   const cardStyle: React.CSSProperties = featured ? {
-    background: 'linear-gradient(135deg, rgba(240,192,96,0.06) 0%, rgba(19,21,32,0.9) 100%)',
+    background: 'linear-gradient(135deg, rgba(240,192,96,0.1) 0%, rgba(11,13,23,0.9) 100%)',
     backdropFilter: 'blur(24px) saturate(180%)',
-    border: '1px solid rgba(240, 192, 96, 0.2)',
+    border: '1px solid rgba(240, 192, 96, 0.4)',
     borderRadius: 16,
     overflow: 'hidden',
     cursor: 'pointer',
     transition: 'all 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-    boxShadow: '0 0 30px rgba(240, 192, 96, 0.1)',
+    boxShadow: '0 0 20px rgba(240, 192, 96, 0.2)',
   } : {
     background: 'rgba(19, 21, 32, 0.85)',
     backdropFilter: 'blur(24px) saturate(180%)',
-    border: '1px solid rgba(240, 192, 96, 0.08)',
+    border: '1px solid rgba(240, 192, 96, 0.2)',
     borderRadius: 16,
     overflow: 'hidden',
     cursor: 'pointer',
@@ -39,15 +39,15 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, featured = false }) 
     const el = e.currentTarget
     if (enter) {
       el.style.transform = 'translateY(-4px)'
-      el.style.borderColor = 'rgba(240, 192, 96, 0.25)'
-      el.style.boxShadow = '0 12px 40px rgba(0,0,0,0.5), 0 0 20px rgba(240,192,96,0.1)'
+      el.style.borderColor = 'rgba(240, 192, 96, 0.6)'
+      el.style.boxShadow = '0 12px 40px rgba(0,0,0,0.5), 0 0 20px rgba(240,192,96,0.3)'
     } else {
       el.style.transform = 'translateY(0)'
       el.style.borderColor = featured
-        ? 'rgba(240, 192, 96, 0.2)'
-        : 'rgba(240, 192, 96, 0.08)'
+        ? 'rgba(240, 192, 96, 0.4)'
+        : 'rgba(240, 192, 96, 0.2)'
       el.style.boxShadow = featured
-        ? '0 0 30px rgba(240, 192, 96, 0.1)'
+        ? '0 0 20px rgba(240, 192, 96, 0.2)'
         : '0 4px 24px rgba(0, 0, 0, 0.4)'
     }
   }
@@ -135,13 +135,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, featured = false }) 
         )}
 
         {/* 底部信息 */}
-        <div className="flex items-center justify-between" style={{ paddingTop: 12, borderTop: '1px solid rgba(240, 192, 96, 0.06)' }}>
+        <div className="flex items-center justify-between" style={{ paddingTop: 12, borderTop: '1px solid rgba(240, 192, 96, 0.2)' }}>
           <div className="flex items-center gap-2">
             <Avatar
               size={22}
               src={(article as any).author?.avatar}
               icon={<UserOutlined />}
-              style={{ background: 'rgba(240, 192, 96, 0.15)', border: '1px solid rgba(240, 192, 96, 0.2)' }}
+              style={{ background: 'rgba(240, 192, 96, 0.15)', border: '1px solid rgba(240, 192, 96, 0.3)' }}
             />
             <span style={{ fontSize: 13, color: '#9C9688' }}>
               {(article as any).author?.name || '匿名'}
@@ -156,7 +156,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, featured = false }) 
               <EyeOutlined /> {article.viewCount || 0}
             </span>
             <span className="flex items-center gap-1">
-              <LikeOutlined /> {article.likeCnt || 0}
+              <LikeOutlined /> {article.likeCount || 0}
             </span>
           </div>
         </div>

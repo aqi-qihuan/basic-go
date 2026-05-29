@@ -5,7 +5,7 @@ interface RankBadgeProps {
   size?: 'sm' | 'md' | 'lg'
 }
 
-/** HOK 风格排行榜排名徽章 */
+/** HOK 金色风格排行榜排名徽章 */
 const RankBadge: React.FC<RankBadgeProps> = ({ rank, size = 'md' }) => {
   const sizeMap = {
     sm: { w: 28, h: 28, font: 12 },
@@ -17,14 +17,14 @@ const RankBadge: React.FC<RankBadgeProps> = ({ rank, size = 'md' }) => {
   if (rank === 1) {
     return (
       <div
-        className="animate-gold-pulse"
+        className="animate-neon-flicker"
         style={{
           width: s.w, height: s.h, borderRadius: '50%',
-          background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+          background: 'linear-gradient(135deg, #F0C060 0%, #C8982A 100%)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: s.font, fontWeight: 900, color: '#0B0D17',
-          boxShadow: '0 0 20px rgba(255, 215, 0, 0.4)',
-          border: '2px solid #FFD700',
+          boxShadow: '0 0 20px rgba(240, 192, 96, 0.6)',
+          border: '2px solid #9C9688',
         }}
       >
         1
@@ -36,11 +36,11 @@ const RankBadge: React.FC<RankBadgeProps> = ({ rank, size = 'md' }) => {
     return (
       <div style={{
         width: s.w, height: s.h, borderRadius: '50%',
-        background: 'linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%)',
+        background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: s.font, fontWeight: 900, color: '#0B0D17',
-        boxShadow: '0 0 15px rgba(192, 192, 192, 0.3)',
-        border: '2px solid #C0C0C0',
+        fontSize: s.font, fontWeight: 900, color: '#FFFFFF',
+        boxShadow: '0 0 15px rgba(59, 130, 246, 0.4)',
+        border: '2px solid #60A5FA',
       }}>
         2
       </div>
@@ -51,11 +51,11 @@ const RankBadge: React.FC<RankBadgeProps> = ({ rank, size = 'md' }) => {
     return (
       <div style={{
         width: s.w, height: s.h, borderRadius: '50%',
-        background: 'linear-gradient(135deg, #CD7F32 0%, #B8860B 100%)',
+        background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: s.font, fontWeight: 900, color: '#0B0D17',
-        boxShadow: '0 0 15px rgba(205, 127, 50, 0.3)',
-        border: '2px solid #CD7F32',
+        fontSize: s.font, fontWeight: 900, color: '#FFFFFF',
+        boxShadow: '0 0 15px rgba(59, 130, 246, 0.4)',
+        border: '2px solid #60A5FA',
       }}>
         3
       </div>
@@ -68,7 +68,7 @@ const RankBadge: React.FC<RankBadgeProps> = ({ rank, size = 'md' }) => {
       background: 'rgba(240, 192, 96, 0.1)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: s.font, fontWeight: 700, color: '#9C9688',
-      border: '1px solid rgba(240, 192, 96, 0.15)',
+      border: '1px solid rgba(240, 192, 96, 0.3)',
     }}>
       {rank}
     </div>

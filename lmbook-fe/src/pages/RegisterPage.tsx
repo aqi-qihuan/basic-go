@@ -48,7 +48,7 @@ const RegisterPage: React.FC = () => {
 
   return (
     <div
-      className="flex items-center justify-center px-4"
+      className="flex items-center justify-center px-3 sm:px-4 py-8"
       style={{ minHeight: '100vh', background: 'var(--bg-deep)' }}
     >
       <div style={{
@@ -59,16 +59,16 @@ const RegisterPage: React.FC = () => {
 
       <div className="w-full max-w-md" style={{ position: 'relative', zIndex: 1 }}>
         <div className="text-center mb-8">
-          <h1 style={{
-            fontSize: 40, fontWeight: 800, color: '#F0C060', margin: '0 0 8px 0',
+          <h1 className="text-2xl sm:text-4xl" style={{
+            fontWeight: 800, color: '#F0C060', margin: '0 0 8px 0',
             textShadow: '0 0 30px rgba(240, 192, 96, 0.3)',
           }}>
             蓝梦社区
           </h1>
-          <p style={{ color: '#9C9688', fontSize: 15 }}>创建你的账号</p>
+          <p className="text-sm sm:text-base" style={{ color: '#9C9688' }}>创建你的账号</p>
         </div>
 
-        <div className="glass-card" style={{ padding: '36px 32px', cursor: 'default' }}>
+        <div className="glass-card p-4 sm:p-8" style={{ cursor: 'default' }}>
           <Form form={form} name="register" onFinish={handleRegister} layout="vertical" size="large">
             <Form.Item name="nickname" rules={[{ required: true, message: '请输入昵称' }]}>
               <Input

@@ -45,12 +45,21 @@ function WangEditor(props: Props) {
 
     return (
         <>
-            <div style={{ border: '1px solid #ccc', zIndex: 100}}>
+            <div style={{ 
+                border: '1px solid rgba(240, 192, 96, 0.3)', 
+                zIndex: 100,
+                borderRadius: 10,
+                overflow: 'hidden',
+                boxShadow: '0 0 10px rgba(240, 192, 96, 0.1)',
+            }}>
                 <Toolbar
                     editor={editor}
                     defaultConfig={toolbarConfig}
                     mode="default"
-                    style={{ borderBottom: '1px solid #ccc' }}
+                    style={{ 
+                        borderBottom: '1px solid rgba(240, 192, 96, 0.3)',
+                        background: 'rgba(19, 21, 32, 0.9)',
+                    }}
                 />
                 <Editor
                     defaultConfig={editorConfig}
@@ -58,7 +67,12 @@ function WangEditor(props: Props) {
                     onCreated={setEditor}
                     onChange={editor => setHtmlFn(editor.getHtml())}
                     mode="default"
-                    style={{ height: '500px', overflowY: 'hidden' }}
+                    style={{ 
+                        height: '500px', 
+                        overflowY: 'hidden',
+                        background: 'rgba(19, 21, 32, 0.8)',
+                        color: '#F5F0E8',
+                    }}
                 />
             </div>
         </>

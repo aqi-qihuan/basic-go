@@ -38,7 +38,7 @@ export default {
           silver: '#C0C0C0',
           bronze: '#CD7F32',
         },
-        // 保留 primary 用于 Ant Design 兼容
+        // primary 用于 Ant Design 兼容
         primary: {
           50: '#FFF7ED',
           100: '#FFEDD5',

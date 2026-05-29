@@ -4,7 +4,8 @@ import { SaveOutlined, SendOutlined, ArrowLeftOutlined } from '@ant-design/icons
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Editor, Toolbar } from '@wangeditor/editor-for-react'
 import { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor'
-import { saveArticle, publishArticle, getArticleById } from '@/services/articleService'
+import { saveArticle, publishArticle, getArticleDetail } from '@/services/articleService'
+import { getUserTags, createTag, attachTags } from '@/services/searchService'
 import { useUserStore } from '@/store/userStore'
 import '@wangeditor/editor/dist/css/style.css'
 import type { Author } from '@/types/article'
@@ -14,6 +15,7 @@ const WriteArticlePage: React.FC = () => {
   const [content, setContent] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [inputTag, setInputTag] = useState('')
+  const [existingTags, setExistingTags] = useState<{ id: number; name: string }[]>([])
   const [saving, setSaving] = useState(false)
   const [publishing, setPublishing] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -21,6 +23,13 @@ const WriteArticlePage: React.FC = () => {
   const { user } = useUserStore()
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
+
+  // 加载用户已有标签
+  useEffect(() => {
+    getUserTags().then((res) => {
+      setExistingTags(res?.tag || [])
+    }).catch(() => {})
+  }, [])
 
   // 编辑模式：加载文章数据
   useEffect(() => {
@@ -32,7 +41,7 @@ const WriteArticlePage: React.FC = () => {
   const fetchArticle = async (articleId: string) => {
     setLoading(true)
     try {
-      const article = await getArticleById(Number(articleId))
+      const article = await getArticleDetail(Number(articleId))
       setTitle(article.title)
       setContent(article.content)
       setTags(article.tags || [])
@@ -135,12 +144,29 @@ const WriteArticlePage: React.FC = () => {
 
     setPublishing(true)
     try {
-      await publishArticle({
+      const articleId = await publishArticle({
         title: title.trim(),
         content,
-        tags,
-        author: getAuthor(),
       })
+      // 发布成功后附加标签
+      if (tags.length > 0 && articleId) {
+        try {
+          // 先创建不存在的标签
+          const tagIds: number[] = []
+          for (const tagName of tags) {
+            const existing = existingTags.find(t => t.name === tagName)
+            if (existing) {
+              tagIds.push(existing.id)
+            } else {
+              const newTag = await createTag(tagName)
+              if (newTag?.tag?.id) tagIds.push(newTag.tag.id)
+            }
+          }
+          if (tagIds.length > 0) {
+            await attachTags('article', articleId, tagIds)
+          }
+        } catch { /* 标签附加失败不影响发布 */ }
+      }
       message.success('文章发布成功！')
       navigate('/')
     } catch {
@@ -159,9 +185,9 @@ const WriteArticlePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={{ minHeight: '100vh', background: 'var(--bg-deep)' }}>
       {/* 顶部工具栏 */}
-      <div className="sticky top-0 z-10 bg-white shadow-sm px-4 py-3 flex items-center justify-between">
+      <div className="sticky top-0 z-10 flex items-center justify-between" style={{ background: 'rgba(19,21,32,0.95)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(240,192,96,0.08)', padding: '10px 12px' }}>
         <div className="flex items-center space-x-4">
           <Link to="/" className="text-gray-600 hover:text-primary-600 transition-colors duration-200">
             <ArrowLeftOutlined className="text-xl" />
@@ -171,37 +197,41 @@ const WriteArticlePage: React.FC = () => {
           </h1>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center gap-2">
           <Button
             icon={<SaveOutlined />}
             loading={saving}
             onClick={handleSaveDraft}
-            className="border-primary-600 text-primary-600 hover:bg-primary-50 transition-all duration-200"
+            size="small"
+            className="h-11"
+            style={{ background: 'transparent', border: '1px solid rgba(240,192,96,0.3)', color: '#F0C060', borderRadius: 8 }}
           >
-            保存草稿
+            <span className="hidden sm:inline">保存草稿</span>
           </Button>
           <Button
             type="primary"
             icon={<SendOutlined />}
             loading={publishing}
             onClick={handlePublish}
-            className="bg-primary-600 hover:bg-primary-700 transition-all duration-200"
+            size="small"
+            className="h-11"
+            style={{ background: 'linear-gradient(135deg, #F0C060, #FF8C00)', border: 'none', borderRadius: 8, fontWeight: 700, color: '#0B0D17' }}
           >
-            发布文章
+            <span className="hidden sm:inline">发布</span>
           </Button>
         </div>
       </div>
 
       {/* 编辑区域 */}
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
         {/* 标题输入 */}
         <div className="mb-6">
           <Input
             placeholder="请输入文章标题..."
             value={title}
             onChange={e => setTitle(e.target.value)}
-            className="text-3xl font-bold border-none shadow-none focus:shadow-none text-gray-800"
-            style={{ fontSize: '2rem', fontWeight: 700 }}
+            className="text-xl sm:text-3xl font-bold border-none shadow-none focus:shadow-none text-gray-800"
+            style={{ fontWeight: 700 }}
           />
         </div>
 
@@ -213,7 +243,7 @@ const WriteArticlePage: React.FC = () => {
               value={inputTag}
               onChange={e => setInputTag(e.target.value)}
               onPressEnter={handleAddTag}
-              className="w-48"
+              className="w-full sm:w-48"
             />
             <Button type="dashed" onClick={handleAddTag}>
               添加标签
@@ -225,21 +255,50 @@ const WriteArticlePage: React.FC = () => {
                 key={tag}
                 closable
                 onClose={() => handleRemoveTag(tag)}
-                className="bg-primary-50 text-primary-600 border-primary-200"
+                style={{
+                  background: 'rgba(240,192,96,0.1)',
+                  border: '1px solid rgba(240,192,96,0.3)',
+                  color: '#F0C060',
+                  borderRadius: 16,
+                }}
               >
                 {tag}
               </Tag>
             ))}
           </div>
+          {/* 已有标签快速选择 */}
+          {existingTags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              <span style={{ color: '#6B6558', fontSize: 12, lineHeight: '24px' }}>常用标签：</span>
+              {existingTags.filter(t => !tags.includes(t.name)).slice(0, 10).map(tag => (
+                <Tag
+                  key={tag.id}
+                  onClick={() => { if (!tags.includes(tag.name)) setTags([...tags, tag.name]) }}
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid rgba(240,192,96,0.15)',
+                    color: '#9C9688',
+                    borderRadius: 16,
+                    cursor: 'pointer',
+                    fontSize: 12,
+                  }}
+                >
+                  + {tag.name}
+                </Tag>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* 富文本编辑器 */}
         <div className="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all duration-300">
-          <Toolbar
-            editor={editorRef.current}
-            defaultConfig={toolbarConfig}
-            className="border-b"
-          />
+          <div className="overflow-x-auto">
+            <Toolbar
+              editor={editorRef.current}
+              defaultConfig={toolbarConfig}
+              className="border-b"
+            />
+          </div>
           <Editor
             defaultConfig={editorConfig}
             value={content}

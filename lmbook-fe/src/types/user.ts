@@ -5,6 +5,8 @@ export interface User {
   nickname: string
   avatar?: string
   bio?: string
+  phone?: string
+  wechat?: string
   articleCount?: number
   followerCount?: number
   followingCount?: number

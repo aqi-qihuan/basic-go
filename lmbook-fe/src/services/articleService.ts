@@ -71,3 +71,17 @@ export const rewardArticle = async (id: number, amt: number): Promise<{ codeURL:
   const response = await request.post('/articles/pub/reward', { id, amt })
   return unwrap(response)
 }
+
+// ========== 收藏夹 ==========
+
+/** 获取收藏列表 - POST /collections/list */
+export const getCollections = async (offset = 0, limit = 20) => {
+  const response = await request.post('/collections/list', { offset, limit })
+  return unwrap(response)
+}
+
+/** 取消收藏 - POST /collections/cancel */
+export const cancelCollection = async (bizId: number) => {
+  const response = await request.post('/collections/cancel', { bizId })
+  return unwrap(response)
+}

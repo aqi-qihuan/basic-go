@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Spin, Segmented, Avatar, Empty } from 'antd'
-import { FireOutlined, TrophyOutlined, EyeOutlined, LikeOutlined, UserOutlined } from '@ant-design/icons'
+import { FireOutlined, EyeOutlined, LikeOutlined, UserOutlined } from '@ant-design/icons'
 import { Link, useNavigate } from 'react-router-dom'
 import { getHotArticles } from '@/services/searchService'
 import { GlassCard, RankBadge, TagPill } from '@/components/common'
@@ -28,7 +28,7 @@ const LeaderboardPage: React.FC = () => {
   const fetchHotArticles = async (p: Period) => {
     setLoading(true)
     try {
-      const result = await getHotArticles({ period: p, limit: 20 })
+      const result = await getHotArticles({ limit: 20 })
       setArticles(result.articles || [])
     } catch {
       setArticles([])
@@ -41,11 +41,11 @@ const LeaderboardPage: React.FC = () => {
     <div style={{ minHeight: '100vh', background: 'var(--bg-deep)' }}>
       {/* 荣耀光晕顶部 */}
       <div className="bg-glory" style={{ paddingTop: 48, paddingBottom: 32 }}>
-        <div className="max-w-3xl mx-auto px-4 text-center">
+        <div className="max-w-3xl mx-auto px-3 sm:px-4 text-center">
           <div className="flex items-center justify-center gap-3 mb-3">
             <FireOutlined style={{ color: '#F0C060', fontSize: 32 }} />
             <h1 style={{
-              fontSize: 36, fontWeight: 800,
+              fontSize: 'clamp(24px, 6vw, 36px)', fontWeight: 800,
               color: '#F0C060',
               margin: 0,
               textShadow: '0 0 20px rgba(240, 192, 96, 0.3)',
@@ -53,7 +53,7 @@ const LeaderboardPage: React.FC = () => {
               文章排行榜
             </h1>
           </div>
-          <p style={{ color: '#9C9688', fontSize: 16, marginBottom: 32 }}>
+          <p className="text-sm sm:text-base" style={{ color: '#9C9688', marginBottom: 32 }}>
             发现最受欢迎的热门文章
           </p>
 
@@ -75,7 +75,7 @@ const LeaderboardPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 py-6">
+      <div className="max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {loading ? (
           <div className="loading-spinner"><Spin size="large" /></div>
         ) : articles.length > 0 ? (
@@ -86,14 +86,14 @@ const LeaderboardPage: React.FC = () => {
                 gold={index < 3}
                 onClick={() => navigate(`/article/${article.id}`)}
               >
-                <div className="flex items-center gap-4" style={{ padding: '16px 20px' }}>
+                <div className="flex items-center gap-4 p-3 sm:p-4">
                   {/* 排名 */}
                   <RankBadge rank={index + 1} size="lg" />
 
                   {/* 文章信息 */}
                   <div className="flex-1 min-w-0">
-                    <h3 style={{
-                      fontSize: 18, fontWeight: 700, color: '#F5F0E8',
+                    <h3 className="text-base sm:text-lg" style={{
+                      fontWeight: 700, color: '#F5F0E8',
                       margin: '0 0 8px 0',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>

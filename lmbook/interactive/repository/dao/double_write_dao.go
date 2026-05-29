@@ -111,3 +111,37 @@ func (d *DoubleWriteDAO) GetByIds(ctx context.Context, biz string, ids []int64) 
 	//TODO implement me
 	panic("implement me")
 }
+
+func (d *DoubleWriteDAO) GetCollectionsByUser(ctx context.Context, uid int64, biz string, offset, limit int) ([]UserCollectionBiz, error) {
+	switch d.pattern.Load() {
+	case patternSrcOnly, patternSrcFirst:
+		return d.src.GetCollectionsByUser(ctx, uid, biz, offset, limit)
+	case patternDstFirst, patternDstOnly:
+		return d.dst.GetCollectionsByUser(ctx, uid, biz, offset, limit)
+	default:
+		return nil, errUnknownPattern
+	}
+}
+
+func (d *DoubleWriteDAO) DeleteCollectionBiz(ctx context.Context, biz string, bizId, uid int64) error {
+	switch d.pattern.Load() {
+	case patternSrcOnly:
+		return d.src.DeleteCollectionBiz(ctx, biz, bizId, uid)
+	case patternSrcFirst:
+		err := d.src.DeleteCollectionBiz(ctx, biz, bizId, uid)
+		if err == nil {
+			_ = d.dst.DeleteCollectionBiz(ctx, biz, bizId, uid)
+		}
+		return err
+	case patternDstFirst:
+		err := d.dst.DeleteCollectionBiz(ctx, biz, bizId, uid)
+		if err == nil {
+			_ = d.src.DeleteCollectionBiz(ctx, biz, bizId, uid)
+		}
+		return err
+	case patternDstOnly:
+		return d.dst.DeleteCollectionBiz(ctx, biz, bizId, uid)
+	default:
+		return errUnknownPattern
+	}
+}

@@ -23,7 +23,8 @@ const CommentForm: React.FC<CommentFormProps> = ({ articleId, parentId, onSucces
     setSubmitting(true)
     try {
       await createComment({
-        articleId,
+        biz: 'article',
+        bizId: articleId,
         content: content.trim(),
         parentId,
       })
@@ -52,6 +53,12 @@ const CommentForm: React.FC<CommentFormProps> = ({ articleId, parentId, onSucces
         rows={4}
         placeholder={placeholder || '写下你的评论... (Ctrl+Enter 发送)'}
         className="mb-3"
+        style={{
+          background: 'rgba(19, 21, 32, 0.8)',
+          border: '1px solid rgba(240, 192, 96, 0.3)',
+          borderRadius: 10,
+          color: '#F5F0E8',
+        }}
       />
       <div className="flex justify-end">
         <Button
@@ -59,6 +66,13 @@ const CommentForm: React.FC<CommentFormProps> = ({ articleId, parentId, onSucces
           onClick={handleSubmit}
           loading={submitting}
           disabled={!content.trim()}
+          style={{
+            background: 'linear-gradient(135deg, #F0C060 0%, #C8982A 100%)',
+            border: '1px solid #9C9688',
+            borderRadius: 10,
+            color: '#0B0D17',
+            fontWeight: 700,
+          }}
         >
           发表评论
         </Button>

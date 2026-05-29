@@ -17,6 +17,8 @@ type InteractiveDAO interface {
 	Get(ctx context.Context, biz string, bizId int64) (Interactive, error)
 	InsertCollectionBiz(ctx context.Context, cb UserCollectionBiz) error
 	GetCollectionInfo(ctx context.Context, biz string, bizId, uid int64) (UserCollectionBiz, error)
+	GetCollectionsByUser(ctx context.Context, uid int64, biz string, offset, limit int) ([]UserCollectionBiz, error)
+	DeleteCollectionBiz(ctx context.Context, biz string, bizId, uid int64) error
 	BatchIncrReadCnt(ctx context.Context, bizs []string, ids []int64) error
 	GetByIds(ctx context.Context, biz string, ids []int64) ([]Interactive, error)
 }
@@ -180,6 +182,33 @@ func (dao *GORMInteractiveDAO) Get(ctx context.Context, biz string, bizId int64)
 		Where("biz = ? AND biz_id = ?", biz, bizId).
 		First(&res).Error
 	return res, err
+}
+
+func (dao *GORMInteractiveDAO) GetCollectionsByUser(ctx context.Context, uid int64, biz string, offset, limit int) ([]UserCollectionBiz, error) {
+	var res []UserCollectionBiz
+	db := dao.db.WithContext(ctx).Where("uid = ?", uid)
+	if biz != "" {
+		db = db.Where("biz = ?", biz)
+	}
+	err := db.Order("ctime DESC").Offset(offset).Limit(limit).Find(&res).Error
+	return res, err
+}
+
+func (dao *GORMInteractiveDAO) DeleteCollectionBiz(ctx context.Context, biz string, bizId, uid int64) error {
+	now := time.Now().UnixMilli()
+	return dao.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		err := tx.Where("biz = ? AND biz_id = ? AND uid = ?", biz, bizId, uid).
+			Delete(&UserCollectionBiz{}).Error
+		if err != nil {
+			return err
+		}
+		return tx.Model(&Interactive{}).
+			Where("biz = ? AND biz_id = ?", biz, bizId).
+			Updates(map[string]any{
+				"collect_cnt": gorm.Expr("GREATEST(`collect_cnt`-1, 0)"),
+				"utime":       now,
+			}).Error
+	})
 }
 
 // 正常来说，一张主表和与它有关联关系的表会共用一个DAO，
